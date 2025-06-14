@@ -1,10 +1,10 @@
 import catchAsync from '../utils/catchAsync.ts';
 import AppError from '../utils/appError.ts';
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction, RequestParamHandler } from 'express';
 import { Model } from 'mongoose';
 
 const getAll = <T>(Model: Model<T>) => {
-  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const documents = await Model.find();
 
     if (!documents) {
@@ -20,7 +20,7 @@ const getAll = <T>(Model: Model<T>) => {
 };
 
 const getOne = <T>(Model: Model<T>) => {
-  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params;
 
     const document = await Model.findById(id);
@@ -37,7 +37,7 @@ const getOne = <T>(Model: Model<T>) => {
 };
 
 const createOne = <T>(Model: Model<T>) => {
-  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const newDocument = await Model.create(req.body);
 
     if (!newDocument) {
@@ -54,7 +54,7 @@ const createOne = <T>(Model: Model<T>) => {
 };
 
 const updateOne = <T>(Model: Model<T>) => {
-  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params;
 
     const updatedDocument = await Model.findByIdAndUpdate(id, req.body, {
@@ -74,7 +74,7 @@ const updateOne = <T>(Model: Model<T>) => {
 };
 
 const deleteOne = <T>(Model: Model<T>) => {
-  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params;
 
     const deletedDocument = await Model.findByIdAndUpdate(id);
