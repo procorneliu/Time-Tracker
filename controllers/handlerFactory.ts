@@ -57,6 +57,10 @@ const updateOne = <T>(Model: Model<T>) => {
   return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params;
 
+    if (!req.body) {
+      return next(new AppError('Please provide information you wanna change!', 400));
+    }
+
     const updatedDocument = await Model.findByIdAndUpdate(id, req.body, {
       new: true,
       runValidators: true,
@@ -77,7 +81,7 @@ const deleteOne = <T>(Model: Model<T>) => {
   return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params;
 
-    const deletedDocument = await Model.findByIdAndUpdate(id);
+    const deletedDocument = await Model.findByIdAndDelete(id);
 
     if (!deletedDocument) {
       return next(new AppError('Something got wrong, we are unable to delete this document. Try again!', 400));

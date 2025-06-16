@@ -1,6 +1,5 @@
-import './utils/dotenv.ts';
-import './utils/db.ts';
 import AppError from './utils/appError.ts';
+import globalErrorHandler from './controllers/errorController.ts';
 
 import express, { type NextFunction, type Request, type Response } from 'express';
 
@@ -20,6 +19,6 @@ app.all('/*splat', (req: Request, res: Response, next: NextFunction) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server`, 404));
 });
 
-app.listen(process.env.PORT || 3000, () => {
-  console.log(`Server running on port ${process.env.PORT}`);
-});
+app.use(globalErrorHandler);
+
+export default app;

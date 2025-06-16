@@ -14,38 +14,51 @@ export interface IUserDocument extends IUser, Document {
   correctPassword(candidatePassword: string): Promise<boolean>;
 }
 
-const userSchema: Schema = new Schema<IUserDocument>({
-  name: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true,
-    minlength: 5,
-    maxLength: 50,
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    minlength: 10,
-    maxlength: 100,
-  },
-  password: {
-    type: String,
-    required: true,
-    minlength: 10,
-  },
-  passwordConfirm: {
-    type: String,
-    required: true,
-    minlength: 10,
-    select: false,
-    validate: {
-      validator: function (el) {
-        return el === this.password;
-      },
-      message: 'passwords are not the same',
+const userSchema: Schema = new Schema<IUserDocument>(
+  {
+    name: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      minlength: 5,
+      maxLength: 50,
     },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      minlength: 10,
+      maxlength: 100,
+    },
+    password: {
+      type: String,
+      required: true,
+      minlength: 10,
+    },
+    passwordConfirm: {
+      type: String,
+      required: true,
+      minlength: 10,
+      select: false,
+      validate: {
+        validator: function (el) {
+          return el === this.password;
+        },
+        message: 'passwords are not the same',
+      },
+    },
+  },
+  {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  },
+);
+
+userSchema.set('toJSON', {
+  transform(_, ret) {
+    delete ret.__v;
+    return ret;
   },
 });
 

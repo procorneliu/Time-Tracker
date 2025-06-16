@@ -9,19 +9,32 @@ interface IWorkLogs {
 
 export interface IWorkLogsDocument extends IWorkLogs, Document {}
 
-const workLogsSchema: Schema = new Schema<IWorkLogsDocument>({
-  title: {
-    type: String,
-    required: [true, 'A project/work must have a title'],
+const workLogsSchema: Schema = new Schema<IWorkLogsDocument>(
+  {
+    title: {
+      type: String,
+      required: [true, 'A project/work must have a title'],
+    },
+    rate: {
+      type: Number,
+      min: 1,
+    },
+    client: {
+      type: Schema.ObjectId,
+      ref: 'Client',
+      required: [true, 'a work/project must belong to a client'],
+    },
   },
-  rate: {
-    type: Number,
-    min: 1,
+  {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   },
-  client: {
-    type: Schema.ObjectId,
-    ref: 'Client',
-    required: [true, 'a work/project must belong to a client'],
+);
+
+workLogsSchema.set('toJSON', {
+  transform(_, ret) {
+    delete ret.__v;
+    return ret;
   },
 });
 
