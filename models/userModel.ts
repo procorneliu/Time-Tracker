@@ -30,11 +30,19 @@ const userSchema: Schema = new Schema<IUserDocument>(
       unique: true,
       minlength: 10,
       maxlength: 100,
+      validate: {
+        validator: (value: string) => validator.isEmail(value),
+        message: 'Incorrect email format!',
+      },
     },
     password: {
       type: String,
       required: true,
       minlength: 10,
+      validate: {
+        validator: (value: string) => validator.isStrongPassword(value),
+        message: 'This password is not strong enough!',
+      },
     },
     passwordConfirm: {
       type: String,

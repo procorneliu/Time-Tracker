@@ -5,6 +5,9 @@ const router = express.Router();
 
 // ROUTES for CRUD operation
 router.route('/').get(workLogsController.getAllWorkLogs).post(workLogsController.createWorkLogs);
+
+router.route('/total').get(workLogsController.calculateTotalHours);
+
 router
   .route('/:id')
   .get(workLogsController.getWorkLogs)
