@@ -1,0 +1,5 @@
+{
+  "quiet": false,
+  "ext": "ts",
+  "exec": "node --experimental-transform-types --no-warnings -r ts-node/register server.ts"
+}
