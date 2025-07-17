@@ -12,11 +12,11 @@ const deleteWorkLogs = factory.deleteOne(WorkLogs);
 
 const calculateTotalHours = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const allWorkLogs = await WorkLogs.find();
-  const totalHours: number = allWorkLogs.reduce((acc, value) => acc + value.hours, 0);
+  const totalHours: number = allWorkLogs.reduce((acc, value) => acc + value.time, 0);
 
   res.status(200).json({
     status: 'success',
-    data: `${totalHours}:00:00`,
+    data: totalHours,
   });
 });
 

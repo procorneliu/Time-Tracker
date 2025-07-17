@@ -670,36 +670,73 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 var _axios = require("axios");
 var _axiosDefault = parcelHelpers.interopDefault(_axios);
-var _generatePDFTs = require("./utils/generatePDF.ts");
-var _generatePDFTsDefault = parcelHelpers.interopDefault(_generatePDFTs);
+var _timerNode = require("timer-node");
 var _returnWithZeroTs = require("./utils/returnWithZero.ts");
 var _returnWithZeroTsDefault = parcelHelpers.interopDefault(_returnWithZeroTs);
-var _timerNode = require("timer-node");
-const timeField = document.getElementById('totalTime');
+var _generatePDFTs = require("./utils/generatePDF.ts");
+var _generatePDFTsDefault = parcelHelpers.interopDefault(_generatePDFTs);
+const totalTime = document.getElementById('totalTime');
 const downloadLink = document.getElementById('downloadLink');
 const timerField = document.getElementById('timerField');
 const timerStartButton = document.getElementById('startTimer');
-// Get total amount of hours from DATABASE
-const calculateTotalTime = async ()=>{
-    const data = await (0, _axiosDefault.default).get('http://localhost:3000/api/v1/worklogs/total');
-    const totalHours = data.data.data;
-    timeField.textContent = totalHours;
-    (0, _generatePDFTsDefault.default)(totalHours, downloadLink);
+const projectTitle = document.getElementById('projectTitle');
+const projectsList = document.getElementById('projectsList');
+let timer;
+let interval;
+const insertContent = (data)=>{
+    const content = `<li>${data.title} | ${new Date(data.time).toISOString().slice(11, -5)}</li>`;
+    projectsList.insertAdjacentHTML('afterbegin', content);
 };
-calculateTotalTime();
-timerStartButton.addEventListener('click', ()=>{
-    const timer = new (0, _timerNode.Timer)({
-        label: 'demo'
-    });
-    timer.start();
-    // timerField.textContent = String(timer.time());
-    setInterval(()=>{
-        const { s: seconds, m: minutes, h: hours } = timer.time();
-        timerField.textContent = String(`${(0, _returnWithZeroTsDefault.default)(hours)}:${(0, _returnWithZeroTsDefault.default)(minutes)}:${(0, _returnWithZeroTsDefault.default)(seconds)}`);
-    }, 1000);
+const calculateTotalHours = async ()=>{
+    const timeData = await (0, _axiosDefault.default).get('http://localhost:3000/api/v1/worklogs/total');
+    const duration = timeData.data.data;
+    const convertMsToTime = new Date(duration).toISOString().slice(11, -5);
+    totalTime.textContent = convertMsToTime;
+    (0, _generatePDFTsDefault.default)(convertMsToTime, downloadLink);
+};
+// Get total amount of hours from DATABASE
+const gettingAllData = async ()=>{
+    const worklogsData = await (0, _axiosDefault.default).get('http://localhost:3000/api/v1/worklogs');
+    worklogsData.data.data.forEach((worklog)=>insertContent(worklog));
+    calculateTotalHours();
+};
+const saveTimeToDB = async (time)=>{
+    const body = {
+        title: projectTitle.value,
+        time,
+        rate: 25,
+        client: '684da4c57f7b0a3e60f94c63'
+    };
+    await (0, _axiosDefault.default).post('http://localhost:3000/api/v1/worklogs', body);
+    calculateTotalHours();
+    insertContent(body);
+    projectTitle.value = '';
+};
+timerStartButton.addEventListener('click', function() {
+    if (this.dataset.status === 'stoped') {
+        this.textContent = 'STOP';
+        this.dataset.status = 'started';
+        timer = new (0, _timerNode.Timer)();
+        timer.start();
+        interval = setInterval(()=>{
+            const { s: seconds, m: minutes, h: hours } = timer.time();
+            timerField.textContent = String(`${(0, _returnWithZeroTsDefault.default)(hours)}:${(0, _returnWithZeroTsDefault.default)(minutes)}:${(0, _returnWithZeroTsDefault.default)(seconds)}`);
+        }, 1000);
+    } else if (this.dataset.status === 'started') {
+        this.textContent = 'Start Timer!';
+        this.dataset.status = 'stoped';
+        clearInterval(interval);
+        timerField.textContent = '00:00:00';
+        timer.stop();
+        // Save timer time to DATABASE
+        saveTimeToDB(timer.ms());
+    }
+});
+document.addEventListener('DOMContentLoaded', ()=>{
+    gettingAllData();
 });
 
-},{"axios":"kooH4","./utils/generatePDF.ts":"6sBsU","./utils/returnWithZero.ts":"gAyQ0","timer-node":"9P89S","@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}],"kooH4":[function(require,module,exports,__globalThis) {
+},{"axios":"kooH4","timer-node":"9P89S","./utils/returnWithZero.ts":"gAyQ0","./utils/generatePDF.ts":"6sBsU","@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}],"kooH4":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "default", ()=>(0, _axiosJsDefault.default));
@@ -5506,6 +5543,245 @@ Object.entries(HttpStatusCode).forEach(([key, value])=>{
     HttpStatusCode[value] = key;
 });
 exports.default = HttpStatusCode;
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}],"9P89S":[function(require,module,exports,__globalThis) {
+const { Timer } = require("5dc5fe30b9539c3d");
+exports.Timer = Timer;
+
+},{"5dc5fe30b9539c3d":"HOvID"}],"HOvID":[function(require,module,exports,__globalThis) {
+/**
+ * timer-node
+ * @copyright 2021 Eyas Ranjous
+ * @license MIT
+ */ /**
+ * A timestamp-based timer that can be started, paused, resumed, and stopped.
+ * @class
+ */ class Timer {
+    /**
+   * Creates a new Timer instance.
+   * @constructor
+   * @param {TimerOptions} [options={}] - Optional configuration for initializing the timer.
+   */ constructor(options = {}){
+        const { label, startTimestamp, endTimestamp, currentStartTimestamp, pauseCount, accumulatedMs } = options;
+        const startTs = startTimestamp >= 0 && startTimestamp < Date.now() ? startTimestamp : undefined;
+        const endTs = startTs >= 0 && endTimestamp > 0 && endTimestamp > startTs ? endTimestamp : undefined;
+        const currentTs = currentStartTimestamp >= startTs && (!endTs || currentStartTimestamp < endTs) ? currentStartTimestamp : startTs;
+        const isStarted = startTimestamp >= 0;
+        const isRunning = currentStartTimestamp !== undefined;
+        const wasPausedAtLeastOneTime = pauseCount > 0;
+        const isPaused = isStarted && !isRunning && wasPausedAtLeastOneTime;
+        this._label = label || '';
+        this._startTimestamp = startTs;
+        this._currentStartTimestamp = !isPaused ? currentTs : undefined;
+        this._endTimestamp = endTs;
+        this._pauseCount = pauseCount || 0;
+        this._accumulatedMs = accumulatedMs || 0;
+    }
+    /**
+   * Returns the label of this timer.
+   * @returns {string}
+   */ getLabel() {
+        return this._label;
+    }
+    /**
+   * Checks if the timer has been started.
+   * @returns {boolean}
+   */ isStarted() {
+        return this._startTimestamp >= 0;
+    }
+    /**
+   * Checks if the timer is currently paused.
+   * @returns {boolean}
+   */ isPaused() {
+        return this.isStarted() && this._currentStartTimestamp === undefined;
+    }
+    /**
+   * Checks if the timer is stopped.
+   * @returns {boolean}
+   */ isStopped() {
+        return this._endTimestamp > 0;
+    }
+    /**
+   * Checks if the timer is running (started but neither paused nor stopped).
+   * @returns {boolean}
+   */ isRunning() {
+        return this.isStarted() && !this.isPaused() && !this.isStopped();
+    }
+    /**
+   * Starts (or restarts) the timer. If already running and not stopped, this does nothing.
+   * @returns {Timer} The timer instance (for method chaining).
+   */ start() {
+        if (this.isStarted() && !this.isStopped()) return this;
+        this.clear();
+        this._startTimestamp = Date.now();
+        this._currentStartTimestamp = this._startTimestamp;
+        return this;
+    }
+    /**
+   * Pauses the timer if it's currently running.
+   * @returns {Timer} The timer instance (for method chaining).
+   */ pause() {
+        if (this.isPaused() || !this.isStarted() || this.isStopped()) return this;
+        this._pauseCount += 1;
+        this._accumulatedMs += Date.now() - this._currentStartTimestamp;
+        this._currentStartTimestamp = undefined;
+        return this;
+    }
+    /**
+   * Resumes the timer if it's currently paused.
+   * @returns {Timer} The timer instance (for method chaining).
+   */ resume() {
+        if (!this.isPaused() || this.isStopped()) return this;
+        this._currentStartTimestamp = Date.now();
+        return this;
+    }
+    /**
+   * Stops the timer if it's started (running or paused).
+   * @returns {Timer} The timer instance (for method chaining).
+   */ stop() {
+        if (!this.isStarted()) return this;
+        this._endTimestamp = Date.now();
+        return this;
+    }
+    /**
+   * Returns the elapsed running time in milliseconds.
+   * - If the timer is running, the return value increases over time.
+   * - If the timer is paused or stopped, the value is frozen until resumed or restarted.
+   * @returns {number}
+   */ ms() {
+        if (!this.isStarted()) return 0;
+        if (this.isPaused()) return this._accumulatedMs;
+        const endTimestamp = this._endTimestamp || Date.now();
+        const currentMs = endTimestamp - this._currentStartTimestamp;
+        return currentMs + this._accumulatedMs;
+    }
+    /**
+   * Returns the paused duration in milliseconds.
+   * - If the timer is paused, this value increases over time until resumed.
+   * - If the timer is running, this returns the total accumulated pause time up to now.
+   * @returns {number}
+   */ pauseMs() {
+        if (!this.isStarted()) return 0;
+        const endTimestamp = this._endTimestamp || Date.now();
+        return endTimestamp - this._startTimestamp - this.ms();
+    }
+    /**
+   * Converts a millisecond count into a time breakdown (days, hours, minutes, seconds, ms).
+   * @private
+   * @param {number} ms - The millisecond value to convert.
+   * @returns {Time} An object containing { d, h, m, s, ms }.
+   */ _getTime(ms) {
+        const s = Math.floor(ms / 1000);
+        const m = Math.floor(s / 60);
+        const h = Math.floor(m / 60);
+        const d = Math.floor(h / 24);
+        return {
+            ms: ms % 1000,
+            s: s % 60,
+            m: m % 60,
+            h: h % 24,
+            d
+        };
+    }
+    /**
+   * Returns the elapsed running time as a time breakdown (days, hours, minutes, seconds, ms).
+   * @returns {Time}
+   */ time() {
+        return this._getTime(this.ms());
+    }
+    /**
+   * Returns the total pause time as a time breakdown (days, hours, minutes, seconds, ms).
+   * @returns {Time}
+   */ pauseTime() {
+        return this._getTime(this.pauseMs());
+    }
+    /**
+   * Returns how many times the timer has been paused.
+   * @returns {number}
+   */ pauseCount() {
+        return this._pauseCount;
+    }
+    /**
+   * Returns the start timestamp (in ms) if the timer has been started, otherwise undefined.
+   * @returns {number|undefined}
+   */ startedAt() {
+        return this._startTimestamp;
+    }
+    /**
+   * Returns the stop timestamp (in ms) if the timer has been stopped, otherwise undefined.
+   * @returns {number|undefined}
+   */ stoppedAt() {
+        return this._endTimestamp;
+    }
+    /**
+   * Formats the elapsed running time using placeholders.
+   * - %label: Timer label
+   * - %ms:   Milliseconds
+   * - %s:    Seconds
+   * - %m:    Minutes
+   * - %h:    Hours
+   * - %d:    Days
+   *
+   * @param {string} [template='%label%d d, %h h, %m m, %s s, %ms ms']
+   * @returns {string} - The formatted time string.
+   */ format(template = '%label%d d, %h h, %m m, %s s, %ms ms') {
+        const t = this.time();
+        return template.replace('%label', this._label ? `${this._label}: ` : '').replace('%ms', t.ms).replace('%s', t.s).replace('%m', t.m).replace('%h', t.h).replace('%d', t.d);
+    }
+    /**
+   * Clears the timer, resetting it to an unstarted state.
+   * @returns {Timer} The timer instance (for method chaining).
+   */ clear() {
+        this._startTimestamp = undefined;
+        this._currentStartTimestamp = undefined;
+        this._endTimestamp = undefined;
+        this._accumulatedMs = 0;
+        this._pauseCount = 0;
+        return this;
+    }
+    /**
+   * Serializes the timer's current state to a JSON string.
+   * @returns {string}
+   */ serialize() {
+        return JSON.stringify({
+            startTimestamp: this._startTimestamp,
+            currentStartTimestamp: this._currentStartTimestamp,
+            endTimestamp: this._endTimestamp,
+            accumulatedMs: this._accumulatedMs,
+            pauseCount: this._pauseCount,
+            label: this._label
+        });
+    }
+    /**
+   * Deserializes a timer from a JSON string and returns a new Timer instance.
+   * @static
+   * @param {string} serializedTimer - The JSON string created by `timer.serialize()`.
+   * @returns {Timer} A new Timer instance based on the serialized data.
+   */ static deserialize(serializedTimer) {
+        return new Timer(JSON.parse(serializedTimer));
+    }
+    /**
+   * Creates a Timer instance to measure the execution time of a synchronous function.
+   * @static
+   * @param {Function} fn - The function to benchmark.
+   * @throws {Error} If `fn` is not a function.
+   * @returns {Timer} A stopped Timer instance reflecting how long `fn` took to execute.
+   */ static benchmark(fn) {
+        if (typeof fn !== 'function') throw new Error('Timer.benchmark expects a function');
+        const timer = new Timer({
+            label: fn.name
+        }).start();
+        fn();
+        return timer.stop();
+    }
+}
+exports.Timer = Timer;
+
+},{}],"gAyQ0":[function(require,module,exports,__globalThis) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+const returnWithZero = (value)=>value >= 10 ? value : `0${value}`;
+exports.default = returnWithZero;
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}],"6sBsU":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
@@ -54285,245 +54561,6 @@ module.exports = function() {
     else if (blobBuilderSupported) return BlobBuilderConstructor;
     else return undefined;
 }();
-
-},{}],"gAyQ0":[function(require,module,exports,__globalThis) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-const returnWithZero = (value)=>value >= 10 ? value : `0${value}`;
-exports.default = returnWithZero;
-
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}],"9P89S":[function(require,module,exports,__globalThis) {
-const { Timer } = require("5dc5fe30b9539c3d");
-exports.Timer = Timer;
-
-},{"5dc5fe30b9539c3d":"HOvID"}],"HOvID":[function(require,module,exports,__globalThis) {
-/**
- * timer-node
- * @copyright 2021 Eyas Ranjous
- * @license MIT
- */ /**
- * A timestamp-based timer that can be started, paused, resumed, and stopped.
- * @class
- */ class Timer {
-    /**
-   * Creates a new Timer instance.
-   * @constructor
-   * @param {TimerOptions} [options={}] - Optional configuration for initializing the timer.
-   */ constructor(options = {}){
-        const { label, startTimestamp, endTimestamp, currentStartTimestamp, pauseCount, accumulatedMs } = options;
-        const startTs = startTimestamp >= 0 && startTimestamp < Date.now() ? startTimestamp : undefined;
-        const endTs = startTs >= 0 && endTimestamp > 0 && endTimestamp > startTs ? endTimestamp : undefined;
-        const currentTs = currentStartTimestamp >= startTs && (!endTs || currentStartTimestamp < endTs) ? currentStartTimestamp : startTs;
-        const isStarted = startTimestamp >= 0;
-        const isRunning = currentStartTimestamp !== undefined;
-        const wasPausedAtLeastOneTime = pauseCount > 0;
-        const isPaused = isStarted && !isRunning && wasPausedAtLeastOneTime;
-        this._label = label || '';
-        this._startTimestamp = startTs;
-        this._currentStartTimestamp = !isPaused ? currentTs : undefined;
-        this._endTimestamp = endTs;
-        this._pauseCount = pauseCount || 0;
-        this._accumulatedMs = accumulatedMs || 0;
-    }
-    /**
-   * Returns the label of this timer.
-   * @returns {string}
-   */ getLabel() {
-        return this._label;
-    }
-    /**
-   * Checks if the timer has been started.
-   * @returns {boolean}
-   */ isStarted() {
-        return this._startTimestamp >= 0;
-    }
-    /**
-   * Checks if the timer is currently paused.
-   * @returns {boolean}
-   */ isPaused() {
-        return this.isStarted() && this._currentStartTimestamp === undefined;
-    }
-    /**
-   * Checks if the timer is stopped.
-   * @returns {boolean}
-   */ isStopped() {
-        return this._endTimestamp > 0;
-    }
-    /**
-   * Checks if the timer is running (started but neither paused nor stopped).
-   * @returns {boolean}
-   */ isRunning() {
-        return this.isStarted() && !this.isPaused() && !this.isStopped();
-    }
-    /**
-   * Starts (or restarts) the timer. If already running and not stopped, this does nothing.
-   * @returns {Timer} The timer instance (for method chaining).
-   */ start() {
-        if (this.isStarted() && !this.isStopped()) return this;
-        this.clear();
-        this._startTimestamp = Date.now();
-        this._currentStartTimestamp = this._startTimestamp;
-        return this;
-    }
-    /**
-   * Pauses the timer if it's currently running.
-   * @returns {Timer} The timer instance (for method chaining).
-   */ pause() {
-        if (this.isPaused() || !this.isStarted() || this.isStopped()) return this;
-        this._pauseCount += 1;
-        this._accumulatedMs += Date.now() - this._currentStartTimestamp;
-        this._currentStartTimestamp = undefined;
-        return this;
-    }
-    /**
-   * Resumes the timer if it's currently paused.
-   * @returns {Timer} The timer instance (for method chaining).
-   */ resume() {
-        if (!this.isPaused() || this.isStopped()) return this;
-        this._currentStartTimestamp = Date.now();
-        return this;
-    }
-    /**
-   * Stops the timer if it's started (running or paused).
-   * @returns {Timer} The timer instance (for method chaining).
-   */ stop() {
-        if (!this.isStarted()) return this;
-        this._endTimestamp = Date.now();
-        return this;
-    }
-    /**
-   * Returns the elapsed running time in milliseconds.
-   * - If the timer is running, the return value increases over time.
-   * - If the timer is paused or stopped, the value is frozen until resumed or restarted.
-   * @returns {number}
-   */ ms() {
-        if (!this.isStarted()) return 0;
-        if (this.isPaused()) return this._accumulatedMs;
-        const endTimestamp = this._endTimestamp || Date.now();
-        const currentMs = endTimestamp - this._currentStartTimestamp;
-        return currentMs + this._accumulatedMs;
-    }
-    /**
-   * Returns the paused duration in milliseconds.
-   * - If the timer is paused, this value increases over time until resumed.
-   * - If the timer is running, this returns the total accumulated pause time up to now.
-   * @returns {number}
-   */ pauseMs() {
-        if (!this.isStarted()) return 0;
-        const endTimestamp = this._endTimestamp || Date.now();
-        return endTimestamp - this._startTimestamp - this.ms();
-    }
-    /**
-   * Converts a millisecond count into a time breakdown (days, hours, minutes, seconds, ms).
-   * @private
-   * @param {number} ms - The millisecond value to convert.
-   * @returns {Time} An object containing { d, h, m, s, ms }.
-   */ _getTime(ms) {
-        const s = Math.floor(ms / 1000);
-        const m = Math.floor(s / 60);
-        const h = Math.floor(m / 60);
-        const d = Math.floor(h / 24);
-        return {
-            ms: ms % 1000,
-            s: s % 60,
-            m: m % 60,
-            h: h % 24,
-            d
-        };
-    }
-    /**
-   * Returns the elapsed running time as a time breakdown (days, hours, minutes, seconds, ms).
-   * @returns {Time}
-   */ time() {
-        return this._getTime(this.ms());
-    }
-    /**
-   * Returns the total pause time as a time breakdown (days, hours, minutes, seconds, ms).
-   * @returns {Time}
-   */ pauseTime() {
-        return this._getTime(this.pauseMs());
-    }
-    /**
-   * Returns how many times the timer has been paused.
-   * @returns {number}
-   */ pauseCount() {
-        return this._pauseCount;
-    }
-    /**
-   * Returns the start timestamp (in ms) if the timer has been started, otherwise undefined.
-   * @returns {number|undefined}
-   */ startedAt() {
-        return this._startTimestamp;
-    }
-    /**
-   * Returns the stop timestamp (in ms) if the timer has been stopped, otherwise undefined.
-   * @returns {number|undefined}
-   */ stoppedAt() {
-        return this._endTimestamp;
-    }
-    /**
-   * Formats the elapsed running time using placeholders.
-   * - %label: Timer label
-   * - %ms:   Milliseconds
-   * - %s:    Seconds
-   * - %m:    Minutes
-   * - %h:    Hours
-   * - %d:    Days
-   *
-   * @param {string} [template='%label%d d, %h h, %m m, %s s, %ms ms']
-   * @returns {string} - The formatted time string.
-   */ format(template = '%label%d d, %h h, %m m, %s s, %ms ms') {
-        const t = this.time();
-        return template.replace('%label', this._label ? `${this._label}: ` : '').replace('%ms', t.ms).replace('%s', t.s).replace('%m', t.m).replace('%h', t.h).replace('%d', t.d);
-    }
-    /**
-   * Clears the timer, resetting it to an unstarted state.
-   * @returns {Timer} The timer instance (for method chaining).
-   */ clear() {
-        this._startTimestamp = undefined;
-        this._currentStartTimestamp = undefined;
-        this._endTimestamp = undefined;
-        this._accumulatedMs = 0;
-        this._pauseCount = 0;
-        return this;
-    }
-    /**
-   * Serializes the timer's current state to a JSON string.
-   * @returns {string}
-   */ serialize() {
-        return JSON.stringify({
-            startTimestamp: this._startTimestamp,
-            currentStartTimestamp: this._currentStartTimestamp,
-            endTimestamp: this._endTimestamp,
-            accumulatedMs: this._accumulatedMs,
-            pauseCount: this._pauseCount,
-            label: this._label
-        });
-    }
-    /**
-   * Deserializes a timer from a JSON string and returns a new Timer instance.
-   * @static
-   * @param {string} serializedTimer - The JSON string created by `timer.serialize()`.
-   * @returns {Timer} A new Timer instance based on the serialized data.
-   */ static deserialize(serializedTimer) {
-        return new Timer(JSON.parse(serializedTimer));
-    }
-    /**
-   * Creates a Timer instance to measure the execution time of a synchronous function.
-   * @static
-   * @param {Function} fn - The function to benchmark.
-   * @throws {Error} If `fn` is not a function.
-   * @returns {Timer} A stopped Timer instance reflecting how long `fn` took to execute.
-   */ static benchmark(fn) {
-        if (typeof fn !== 'function') throw new Error('Timer.benchmark expects a function');
-        const timer = new Timer({
-            label: fn.name
-        }).start();
-        fn();
-        return timer.stop();
-    }
-}
-exports.Timer = Timer;
 
 },{}]},["gapJx","afLdM"], "afLdM", "parcelRequire83e2", {})
 

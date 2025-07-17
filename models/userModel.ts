@@ -58,17 +58,11 @@ const userSchema: Schema = new Schema<IUserDocument>(
     },
   },
   {
+    versionKey: false,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
   },
 );
-
-userSchema.set('toJSON', {
-  transform(_, ret) {
-    delete ret.__v;
-    return ret;
-  },
-});
 
 userSchema.pre('save', async function (this: IUserDocument, next) {
   this.password = await bcrypt.hash(this.password, 12);

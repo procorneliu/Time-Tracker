@@ -16,17 +16,11 @@ const clientSchema: Schema = new Schema<IClientDocument>(
     },
   },
   {
+    versionKey: false,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
   },
 );
-
-clientSchema.set('toJSON', {
-  transform(_, ret) {
-    delete ret.__v;
-    return ret;
-  },
-});
 
 const Client = model<IClientDocument>('Client', clientSchema);
 

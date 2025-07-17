@@ -3,7 +3,7 @@ import type { IClientDocument } from './clientModel.ts';
 
 interface IWorkLogs {
   title: string;
-  hours: number;
+  time: number;
   rate?: number;
   client: IClientDocument;
 }
@@ -16,10 +16,10 @@ const workLogsSchema: Schema = new Schema<IWorkLogsDocument>(
       type: String,
       required: [true, 'A project/work must have a title'],
     },
-    hours: {
+    time: {
       type: Number,
       required: true,
-      min: 1,
+      minlength: 1,
     },
     rate: {
       type: Number,
@@ -32,17 +32,11 @@ const workLogsSchema: Schema = new Schema<IWorkLogsDocument>(
     },
   },
   {
+    versionKey: false,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
   },
 );
-
-workLogsSchema.set('toJSON', {
-  transform(_, ret) {
-    delete ret.__v;
-    return ret;
-  },
-});
 
 const WorkLogs = model<IWorkLogsDocument>('WorkLogs', workLogsSchema);
 
