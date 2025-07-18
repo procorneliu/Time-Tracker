@@ -1,7 +1,6 @@
 import bcrypt from 'bcryptjs';
 import validator from 'validator';
 import { Schema, model, Document, Types } from 'mongoose';
-import type { JwtPayload } from 'jsonwebtoken';
 
 interface IUser {
   name: string;
@@ -13,7 +12,7 @@ interface IUser {
 }
 
 export interface IUserDocument extends IUser, Document {
-  _id: Types.ObjectId;
+  // _id: Types.ObjectId;
   changedPasswordAfter(JWTTimestamp: number): boolean;
   correctPassword(candidatePassword: string): Promise<boolean>;
 }
@@ -43,6 +42,7 @@ const userSchema: Schema = new Schema<IUserDocument>(
       type: String,
       required: true,
       minlength: 10,
+      select: false,
       validate: {
         validator: (value: string) => validator.isStrongPassword(value),
         message: 'This password is not strong enough!',
@@ -69,7 +69,14 @@ const userSchema: Schema = new Schema<IUserDocument>(
   },
   {
     versionKey: false,
-    toJSON: { virtuals: true },
+    toJSON: {
+      virtuals: true,
+      transform: function (doc, ret) {
+        ret.id = ret._id;
+        delete ret._id;
+        return ret;
+      },
+    },
     toObject: { virtuals: true },
   },
 );

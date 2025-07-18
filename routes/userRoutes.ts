@@ -1,13 +1,19 @@
 import express from 'express';
 import authController from '../controllers/authController.ts';
 import userController from '../controllers/userController.ts';
+import workLogsController from '../controllers/workLogsController.ts';
 
 const router = express.Router();
 
 router.post('/signup', authController.signup);
 router.post('/login', authController.login);
 
-router.use(authController.protect, authController.restrictTo('admin'));
+router.use(authController.protect);
+
+router.get('/me', userController.getMe);
+router.get('/worklogs/me', workLogsController.getAllMyWorkLogs);
+
+router.use(authController.restrictTo('admin'));
 
 router.route('/').get(userController.getAllUsers).post(userController.createUser);
 router

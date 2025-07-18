@@ -25,7 +25,7 @@ const signToken = (id: Types.ObjectId): string | AppError => {
 };
 
 const createSendToken = (user: IUserDocument, statusCode: number, req: Request, res: Response) => {
-  const token = signToken(user._id);
+  const token = signToken(user.id);
 
   res.cookie('jwt', token, {
     expires: new Date(

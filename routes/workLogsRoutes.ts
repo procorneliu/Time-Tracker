@@ -1,8 +1,10 @@
 import express from 'express';
 import workLogsController from '../controllers/workLogsController.ts';
-// import authController from '../controllers/authController.ts';
+import authController from '../controllers/authController.ts';
 
 const router = express.Router();
+
+router.use(authController.protect);
 
 // ROUTES for CRUD operation
 router.route('/').get(workLogsController.getAllWorkLogs).post(workLogsController.createWorkLogs);
