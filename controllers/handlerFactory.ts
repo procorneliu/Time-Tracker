@@ -5,7 +5,7 @@ import type { Request, Response, NextFunction } from 'express';
 import { Model } from 'mongoose';
 import type { extendedRequest } from './authController.ts';
 
-const getAll = <T>(Model: Model<T>, populate: string = '') => {
+const getAll = <T>(Model: Model<T>, populate = false) => {
   return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const features = new APIFeatures(Model.find(), req.query)
       .filter()

@@ -6,7 +6,7 @@ import type { extendedRequest } from './authController.ts';
 import AppError from '../utils/appError.ts';
 
 // CRUD operation for client model
-const getAllWorkLogs = factory.getAll(WorkLogs, 'populate');
+const getAllWorkLogs = factory.getAll(WorkLogs, true);
 const getWorkLogs = factory.getOne(WorkLogs);
 const createWorkLogs = factory.createOne(WorkLogs, true);
 const updateWorkLogs = factory.updateOne(WorkLogs);
@@ -14,7 +14,7 @@ const deleteWorkLogs = factory.deleteOne(WorkLogs);
 
 const getAllMyWorkLogs = catchAsync(
   async (req: extendedRequest, res: Response, next: NextFunction) => {
-    const myWorkLogs = await WorkLogs.find({ owner: req.user!.id });
+    const myWorkLogs = await WorkLogs.find({ owner: req.user!.id }).populate('client', 'name');
 
     if (!myWorkLogs) return next(new AppError('No WorkLogs found!', 404));
 

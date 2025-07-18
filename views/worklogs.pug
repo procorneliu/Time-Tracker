@@ -1,11 +1,6 @@
-doctype html
-html(lang="en")
-  head
-    meta(charset="UTF-8")
-    meta(name="viewport", content="width=device-width, initial-scale=1.0")
-    script(type="module", src="js/dist/index.js")
-    title Time Tracker 
-  body
+extends base
+
+block content
     h1 Total what:
     p#totalTime 00:00:00
     a#downloadLink(downloadLink="pdf-summary")

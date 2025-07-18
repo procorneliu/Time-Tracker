@@ -21,28 +21,29 @@ const timerStartButton = document.getElementById('startTimer') as HTMLButtonElem
 const projectTitle = document.getElementById('projectTitle') as HTMLInputElement;
 const projectsList = document.getElementById('projectsList') as HTMLUListElement;
 
+const loginForm = document.querySelector('.form__login') as HTMLFormElement;
+
 let timer: Timer;
 let interval: ReturnType<typeof setInterval>;
 
 const insertContent = async () => {
-  const worklogsData = await axios.get(
-    'http://localhost:3000/api/v1/users/me/worklogs?sort=createdAt',
-  );
+  const worklogsData = await axios.get('http://localhost:3000/api/v1/users/me/worklogs');
   projectsList.innerHTML = '';
 
-  // worklogsData.data.data.forEach((worklog: WorklogObject) => insertContent(worklog));
+  if (!worklogsData.data.data) return;
+
   worklogsData.data.data.forEach((worklog: WorklogObject) => {
     const content = `<li>${worklog.title} | ${new Date(worklog.time).toISOString().slice(11, -5)} | ${worklog.client.name}</li>`;
     projectsList.insertAdjacentHTML('afterbegin', content);
   });
-
-  // projectsList.insertAdjacentHTML('afterbegin', content);
 };
 
 const calculateTotalHours = async () => {
-  const timeData: AxiosResponse = await axios.get('http://localhost:3000/api/v1/users/me/worklogs');
+  const timeData: AxiosResponse = await axios.get('http://localhost:3000/api/v1/worklogs/total');
+  if (!timeData.data.data) return;
 
   const duration: string = timeData.data.data;
+
   const convertMsToTime = new Date(duration).toISOString().slice(11, -5);
 
   totalTime.textContent = convertMsToTime;
@@ -52,9 +53,6 @@ const calculateTotalHours = async () => {
 
 // Get total amount of hours from DATABASE
 const gettingAllData = async () => {
-  // const worklogsData = await axios.get('http://localhost:3000/api/v1/worklogs');
-
-  // worklogsData.data.data.forEach((worklog: WorklogObject) => insertContent(worklog));
   insertContent();
   calculateTotalHours();
 };
@@ -86,36 +84,49 @@ const saveTimeToDB = async (time: number) => {
   projectTitle.value = '';
 };
 
-timerStartButton.addEventListener('click', function (this: HTMLButtonElement) {
-  if (this.dataset.status === 'stoped') {
-    this.textContent = 'STOP';
-    this.dataset.status = 'started';
+if (loginForm) {
+  loginForm.addEventListener('submit', () => {
+    const email = (document.getElementById('email') as HTMLInputElement).value;
+    const password = (document.getElementById('password') as HTMLInputElement).value;
 
-    timer = new Timer();
+    login(email, password);
+  });
+}
 
-    timer.start();
+if (timerStartButton) {
+  timerStartButton.addEventListener('click', function (this: HTMLButtonElement) {
+    if (this.dataset.status === 'stoped') {
+      this.textContent = 'STOP';
+      this.dataset.status = 'started';
 
-    interval = setInterval(() => {
-      const { s: seconds, m: minutes, h: hours } = timer.time();
+      timer = new Timer();
 
-      timerField.textContent = String(
-        `${returnWithZero(hours)}:${returnWithZero(minutes)}:${returnWithZero(seconds)}`,
-      );
-    }, 1000);
-  } else if (this.dataset.status === 'started') {
-    this.textContent = 'Start Timer!';
-    this.dataset.status = 'stoped';
+      timer.start();
 
-    clearInterval(interval);
-    timerField.textContent = '00:00:00';
+      interval = setInterval(() => {
+        const { s: seconds, m: minutes, h: hours } = timer.time();
 
-    timer.stop();
+        timerField.textContent = String(
+          `${returnWithZero(hours)}:${returnWithZero(minutes)}:${returnWithZero(seconds)}`,
+        );
+      }, 1000);
+    } else if (this.dataset.status === 'started') {
+      this.textContent = 'Start Timer!';
+      this.dataset.status = 'stoped';
 
-    // Save timer time to DATABASE
-    saveTimeToDB(timer.ms());
-  }
-});
+      clearInterval(interval);
+      timerField.textContent = '00:00:00';
 
-document.addEventListener('DOMContentLoaded', () => {
-  gettingAllData();
-});
+      timer.stop();
+
+      // Save timer time to DATABASE
+      saveTimeToDB(timer.ms());
+    }
+  });
+}
+
+if (window.location.pathname === '/') {
+  document.addEventListener('DOMContentLoaded', () => {
+    gettingAllData();
+  });
+}

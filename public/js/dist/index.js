@@ -676,26 +676,28 @@ var _returnWithZeroTs = require("./utils/returnWithZero.ts");
 var _returnWithZeroTsDefault = parcelHelpers.interopDefault(_returnWithZeroTs);
 var _generatePDFTs = require("./utils/generatePDF.ts");
 var _generatePDFTsDefault = parcelHelpers.interopDefault(_generatePDFTs);
+var _loginTs = require("./login.ts");
 const totalTime = document.getElementById('totalTime');
 const downloadLink = document.getElementById('downloadLink');
 const timerField = document.getElementById('timerField');
 const timerStartButton = document.getElementById('startTimer');
 const projectTitle = document.getElementById('projectTitle');
 const projectsList = document.getElementById('projectsList');
+const loginForm = document.querySelector('.form__login');
 let timer;
 let interval;
 const insertContent = async ()=>{
-    const worklogsData = await (0, _axiosDefault.default).get('http://localhost:3000/api/v1/users/me/worklogs?sort=createdAt');
+    const worklogsData = await (0, _axiosDefault.default).get('http://localhost:3000/api/v1/users/me/worklogs');
     projectsList.innerHTML = '';
-    // worklogsData.data.data.forEach((worklog: WorklogObject) => insertContent(worklog));
+    if (!worklogsData.data.data) return;
     worklogsData.data.data.forEach((worklog)=>{
         const content = `<li>${worklog.title} | ${new Date(worklog.time).toISOString().slice(11, -5)} | ${worklog.client.name}</li>`;
         projectsList.insertAdjacentHTML('afterbegin', content);
     });
-// projectsList.insertAdjacentHTML('afterbegin', content);
 };
 const calculateTotalHours = async ()=>{
-    const timeData = await (0, _axiosDefault.default).get('http://localhost:3000/api/v1/users/me/worklogs');
+    const timeData = await (0, _axiosDefault.default).get('http://localhost:3000/api/v1/worklogs/total');
+    if (!timeData.data.data) return;
     const duration = timeData.data.data;
     const convertMsToTime = new Date(duration).toISOString().slice(11, -5);
     totalTime.textContent = convertMsToTime;
@@ -703,8 +705,6 @@ const calculateTotalHours = async ()=>{
 };
 // Get total amount of hours from DATABASE
 const gettingAllData = async ()=>{
-    // const worklogsData = await axios.get('http://localhost:3000/api/v1/worklogs');
-    // worklogsData.data.data.forEach((worklog: WorklogObject) => insertContent(worklog));
     insertContent();
     calculateTotalHours();
 };
@@ -727,7 +727,12 @@ const saveTimeToDB = async (time)=>{
     insertContent();
     projectTitle.value = '';
 };
-timerStartButton.addEventListener('click', function() {
+if (loginForm) loginForm.addEventListener('submit', ()=>{
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    (0, _loginTs.login)(email, password);
+});
+if (timerStartButton) timerStartButton.addEventListener('click', function() {
     if (this.dataset.status === 'stoped') {
         this.textContent = 'STOP';
         this.dataset.status = 'started';
@@ -747,11 +752,11 @@ timerStartButton.addEventListener('click', function() {
         saveTimeToDB(timer.ms());
     }
 });
-document.addEventListener('DOMContentLoaded', ()=>{
+if (window.location.pathname === '/') document.addEventListener('DOMContentLoaded', ()=>{
     gettingAllData();
 });
 
-},{"axios":"jo6P5","timer-node":"kKsZz","./utils/returnWithZero.ts":"3Zbkv","./utils/generatePDF.ts":"8U6nw","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"jo6P5":[function(require,module,exports,__globalThis) {
+},{"axios":"jo6P5","timer-node":"kKsZz","./utils/returnWithZero.ts":"3Zbkv","./utils/generatePDF.ts":"8U6nw","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./login.ts":"31IiT"}],"jo6P5":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "default", ()=>(0, _axiosJsDefault.default));
@@ -54577,6 +54582,27 @@ module.exports = function() {
     else return undefined;
 }();
 
-},{}]},["lePaA","8kn37"], "8kn37", "parcelRequire83e2", {})
+},{}],"31IiT":[function(require,module,exports,__globalThis) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "login", ()=>login);
+var _axios = require("axios");
+var _axiosDefault = parcelHelpers.interopDefault(_axios);
+const login = async (email, password)=>{
+    try {
+        const res = await (0, _axiosDefault.default)({
+            method: 'POST',
+            url: '/api/v1/users/login',
+            data: {
+                email,
+                password
+            }
+        });
+    } catch  {
+        console.log('Something with login went wrong');
+    }
+};
+
+},{"axios":"jo6P5","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["lePaA","8kn37"], "8kn37", "parcelRequire83e2", {})
 
 //# sourceMappingURL=index.js.map

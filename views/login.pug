@@ -1,0 +1,10 @@
+extends base
+
+block content
+    h3 Log in
+    form.form__login
+      label(for="email")
+      input#email(type="email", name="email", placeholder="example@gmail.com", required)
+      label(for="password")
+      input#password(type="password", name="password", required)
+      button(type="submit") Log in
