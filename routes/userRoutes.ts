@@ -11,7 +11,7 @@ router.post('/login', authController.login);
 router.use(authController.protect);
 
 router.get('/me', userController.getMe);
-router.get('/worklogs/me', workLogsController.getAllMyWorkLogs);
+router.get('/me/worklogs', workLogsController.getAllMyWorkLogs);
 
 router.use(authController.restrictTo('admin'));
 

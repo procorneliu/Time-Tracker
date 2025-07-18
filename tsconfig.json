@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
     "target": "es2022",
+    "module": "NodeNext",
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "module": "NodeNext",
     "outDir": "dist",
     "lib": ["ES2022", "DOM"],
     "strict": true,

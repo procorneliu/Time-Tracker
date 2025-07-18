@@ -32,7 +32,8 @@ const createSendToken = (user: IUserDocument, statusCode: number, req: Request, 
       Date.now() + Number(process.env.JWT_COOKIES_EXPIRES_IN) * 24 * 60 * 60 * 1000,
     ),
     httpOnly: true,
-    secure: req.secure || req.headers['x-forwarded-proto'] === 'https',
+    sameSite: 'lax',
+    // secure: req.secure || req.headers['x-forwarded-proto'] === 'https',
   });
 
   res.status(statusCode).json({

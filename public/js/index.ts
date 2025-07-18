@@ -1,8 +1,11 @@
 import axios, { type AxiosResponse } from 'axios';
 import { Timer } from 'timer-node';
 
+// importing utils
 import returnWithZero from './utils/returnWithZero.ts';
 import generatePDF from './utils/generatePDF.ts';
+
+import { login } from './login.ts';
 
 interface WorklogObject {
   title: string;
@@ -22,7 +25,9 @@ let timer: Timer;
 let interval: ReturnType<typeof setInterval>;
 
 const insertContent = async () => {
-  const worklogsData = await axios.get('http://localhost:3000/api/v1/worklogs?sort=createdAt');
+  const worklogsData = await axios.get(
+    'http://localhost:3000/api/v1/users/me/worklogs?sort=createdAt',
+  );
   projectsList.innerHTML = '';
 
   // worklogsData.data.data.forEach((worklog: WorklogObject) => insertContent(worklog));
@@ -35,7 +40,7 @@ const insertContent = async () => {
 };
 
 const calculateTotalHours = async () => {
-  const timeData: AxiosResponse = await axios.get('http://localhost:3000/api/v1/worklogs/total');
+  const timeData: AxiosResponse = await axios.get('http://localhost:3000/api/v1/users/me/worklogs');
 
   const duration: string = timeData.data.data;
   const convertMsToTime = new Date(duration).toISOString().slice(11, -5);
