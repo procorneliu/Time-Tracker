@@ -1,5 +1,4 @@
 import { Schema, model, Document } from 'mongoose';
-import validator from 'validator';
 
 interface IClient {
   name: string;

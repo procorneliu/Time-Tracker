@@ -683,9 +683,15 @@ const projectTitle = document.getElementById('projectTitle');
 const projectsList = document.getElementById('projectsList');
 let timer;
 let interval;
-const insertContent = (data)=>{
-    const content = `<li>${data.title} | ${new Date(data.time).toISOString().slice(11, -5)}</li>`;
-    projectsList.insertAdjacentHTML('afterbegin', content);
+const insertContent = async ()=>{
+    const worklogsData = await (0, _axiosDefault.default).get('http://localhost:3000/api/v1/worklogs?sort=createdAt');
+    projectsList.innerHTML = '';
+    // worklogsData.data.data.forEach((worklog: WorklogObject) => insertContent(worklog));
+    worklogsData.data.data.forEach((worklog)=>{
+        const content = `<li>${worklog.title} | ${new Date(worklog.time).toISOString().slice(11, -5)} | ${worklog.client.name}</li>`;
+        projectsList.insertAdjacentHTML('afterbegin', content);
+    });
+// projectsList.insertAdjacentHTML('afterbegin', content);
 };
 const calculateTotalHours = async ()=>{
     const timeData = await (0, _axiosDefault.default).get('http://localhost:3000/api/v1/worklogs/total');
@@ -696,8 +702,9 @@ const calculateTotalHours = async ()=>{
 };
 // Get total amount of hours from DATABASE
 const gettingAllData = async ()=>{
-    const worklogsData = await (0, _axiosDefault.default).get('http://localhost:3000/api/v1/worklogs');
-    worklogsData.data.data.forEach((worklog)=>insertContent(worklog));
+    // const worklogsData = await axios.get('http://localhost:3000/api/v1/worklogs');
+    // worklogsData.data.data.forEach((worklog: WorklogObject) => insertContent(worklog));
+    insertContent();
     calculateTotalHours();
 };
 const saveTimeToDB = async (time)=>{
@@ -705,11 +712,18 @@ const saveTimeToDB = async (time)=>{
         title: projectTitle.value,
         time,
         rate: 25,
-        client: '684da4c57f7b0a3e60f94c63'
+        client: {
+            _id: '684da4c57f7b0a3e60f94c63'
+        }
     };
-    await (0, _axiosDefault.default).post('http://localhost:3000/api/v1/worklogs', body);
+    const sameNameProject = await (0, _axiosDefault.default).get(`http://localhost:3000/api/v1/worklogs?title=${body.title}&sort=createdAt`);
+    const foundProject = sameNameProject.data.data[0];
+    if (foundProject && new Date(foundProject.createdAt).getDate() === new Date().getDate()) await (0, _axiosDefault.default).patch(`http://localhost:3000/api/v1/worklogs/${foundProject._id}`, {
+        time: foundProject.time + body.time
+    });
+    else await (0, _axiosDefault.default).post('http://localhost:3000/api/v1/worklogs', body);
     calculateTotalHours();
-    insertContent(body);
+    insertContent();
     projectTitle.value = '';
 };
 timerStartButton.addEventListener('click', function() {

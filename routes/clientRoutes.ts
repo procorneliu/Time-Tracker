@@ -1,7 +1,10 @@
 import express from 'express';
 import clientController from '../controllers/clientController.ts';
+import authController from '../controllers/authController.ts';
 
 const router = express.Router();
+
+router.use(authController.protect);
 
 // ROUTES for CRUD operation
 router.route('/').get(clientController.getAllClients).post(clientController.createClient);

@@ -4,7 +4,7 @@ import catchAsync from '../utils/catchAsync.ts';
 import factory from './handlerFactory.ts';
 
 // CRUD operation for client model
-const getAllWorkLogs = factory.getAll(WorkLogs);
+const getAllWorkLogs = factory.getAll(WorkLogs, 'populate');
 const getWorkLogs = factory.getOne(WorkLogs);
 const createWorkLogs = factory.createOne(WorkLogs);
 const updateWorkLogs = factory.updateOne(WorkLogs);
@@ -20,4 +20,11 @@ const calculateTotalHours = catchAsync(async (req: Request, res: Response, next:
   });
 });
 
-export default { getAllWorkLogs, getWorkLogs, createWorkLogs, updateWorkLogs, deleteWorkLogs, calculateTotalHours };
+export default {
+  getAllWorkLogs,
+  getWorkLogs,
+  createWorkLogs,
+  updateWorkLogs,
+  deleteWorkLogs,
+  calculateTotalHours,
+};

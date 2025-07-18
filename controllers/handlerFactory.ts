@@ -1,11 +1,21 @@
 import catchAsync from '../utils/catchAsync.ts';
 import AppError from '../utils/appError.ts';
-import type { Request, Response, NextFunction, RequestParamHandler } from 'express';
+import APIFeatures from '../utils/apiFeatures.ts';
+import type { Request, Response, NextFunction } from 'express';
 import { Model } from 'mongoose';
+import type { extendedRequest } from './authController.ts';
 
-const getAll = <T>(Model: Model<T>) => {
+const getAll = <T>(Model: Model<T>, populate: string = '') => {
   return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const documents = await Model.find();
+    const features = new APIFeatures(Model.find(), req.query)
+      .filter()
+      .sort()
+      .limitFields()
+      .paginate();
+
+    const documents = populate
+      ? await features.query.populate('client', 'name')
+      : await features.query;
 
     if (!documents) {
       return next(new AppError('No documents found!', 404));
@@ -36,13 +46,18 @@ const getOne = <T>(Model: Model<T>) => {
   });
 };
 
-const createOne = <T>(Model: Model<T>) => {
-  return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+const createOne = <T>(Model: Model<T>, isWorklog = '') => {
+  return catchAsync(async (req: extendedRequest, res: Response, next: NextFunction) => {
+    if (isWorklog) req.body.owner = req.user!.id;
+
     const newDocument = await Model.create(req.body);
 
     if (!newDocument) {
       return next(
-        new AppError('An error occured when creating new document. Please check details and try again!', 400),
+        new AppError(
+          'An error occured when creating new document. Please check details and try again!',
+          400,
+        ),
       );
     }
 
@@ -84,7 +99,9 @@ const deleteOne = <T>(Model: Model<T>) => {
     const deletedDocument = await Model.findByIdAndDelete(id);
 
     if (!deletedDocument) {
-      return next(new AppError('Something got wrong, we are unable to delete this document. Try again!', 400));
+      return next(
+        new AppError('Something got wrong, we are unable to delete this document. Try again!', 400),
+      );
     }
 
     res.status(204).json({

@@ -1,10 +1,12 @@
 import { Schema, model, Document } from 'mongoose';
 import type { IClientDocument } from './clientModel.ts';
+import type { IUserDocument } from './userModel.ts';
 
 interface IWorkLogs {
   title: string;
   time: number;
   rate?: number;
+  owner: IUserDocument;
   client: IClientDocument;
 }
 
@@ -25,6 +27,11 @@ const workLogsSchema: Schema = new Schema<IWorkLogsDocument>(
       type: Number,
       min: 1,
     },
+    owner: {
+      type: Schema.ObjectId,
+      ref: 'User',
+      required: [true, 'a work/project must belong to a client'],
+    },
     client: {
       type: Schema.ObjectId,
       ref: 'Client',
@@ -33,6 +40,7 @@ const workLogsSchema: Schema = new Schema<IWorkLogsDocument>(
   },
   {
     versionKey: false,
+    timestamps: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
   },

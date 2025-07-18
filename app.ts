@@ -1,6 +1,7 @@
 import path from 'path';
 import cors from 'cors';
 import { fileURLToPath } from 'url';
+import cookieParser from 'cookie-parser';
 import AppError from './utils/appError.ts';
 import globalErrorHandler from './controllers/errorController.ts';
 
@@ -16,8 +17,8 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 app.use(cors());
-
 app.use(express.json());
+app.use(cookieParser());
 
 app.use(express.static(path.join(__dirname, 'public')));
 

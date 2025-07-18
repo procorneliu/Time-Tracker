@@ -1,16 +1,20 @@
 import bcrypt from 'bcryptjs';
 import validator from 'validator';
 import { Schema, model, Document, Types } from 'mongoose';
+import type { JwtPayload } from 'jsonwebtoken';
 
 interface IUser {
   name: string;
   email: string;
   password: string;
   passwordConfirm: string;
+  role: string;
+  passwordChangedAt: Date;
 }
 
 export interface IUserDocument extends IUser, Document {
   _id: Types.ObjectId;
+  changedPasswordAfter(JWTTimestamp: number): boolean;
   correctPassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -56,6 +60,12 @@ const userSchema: Schema = new Schema<IUserDocument>(
         message: 'passwords are not the same',
       },
     },
+    role: {
+      type: String,
+      enum: ['user', 'admin'],
+      default: 'user',
+    },
+    passwordChangedAt: Date,
   },
   {
     versionKey: false,
@@ -66,11 +76,32 @@ const userSchema: Schema = new Schema<IUserDocument>(
 
 userSchema.pre('save', async function (this: IUserDocument, next) {
   this.password = await bcrypt.hash(this.password, 12);
+  this.passwordConfirm = undefined!;
 
   next();
 });
 
-userSchema.methods.correctPassword = async function (this: IUserDocument, candidatePassword: string): Promise<boolean> {
+userSchema.pre('save', function (next) {
+  if (!this.isModified('password') || this.isNew) return next();
+
+  this.passwordChangedAt = Date.now() - 1000;
+
+  next();
+});
+
+userSchema.methods.changedPasswordAfter = function (JWTTimestamp: number) {
+  if (this.passwordChangedAt) {
+    const changedTime = this.passwordChangedAt.getTime() / 1000;
+
+    return JWTTimestamp < changedTime;
+  }
+  return false;
+};
+
+userSchema.methods.correctPassword = async function (
+  this: IUserDocument,
+  candidatePassword: string,
+): Promise<boolean> {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
