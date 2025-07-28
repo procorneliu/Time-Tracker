@@ -14,7 +14,7 @@ const deleteWorkLogs = factory.deleteOne(WorkLogs);
 
 const getAllMyWorkLogs = catchAsync(
   async (req: extendedRequest, res: Response, next: NextFunction) => {
-    const myWorkLogs = await WorkLogs.find({ owner: req.user!.id }).populate('client', 'name');
+    const myWorkLogs = await WorkLogs.find({ owner: req.user!.id }).populate('client');
 
     if (!myWorkLogs) return next(new AppError('No WorkLogs found!', 404));
 

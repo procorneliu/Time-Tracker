@@ -676,24 +676,47 @@ var _returnWithZeroTs = require("./utils/returnWithZero.ts");
 var _returnWithZeroTsDefault = parcelHelpers.interopDefault(_returnWithZeroTs);
 var _generatePDFTs = require("./utils/generatePDF.ts");
 var _generatePDFTsDefault = parcelHelpers.interopDefault(_generatePDFTs);
-var _loginTs = require("./login.ts");
+var _authFunctionsTs = require("./authFunctions.ts");
+var _httpRequestsTs = require("./httpRequests.ts");
 const totalTime = document.getElementById('totalTime');
 const downloadLink = document.getElementById('downloadLink');
 const timerField = document.getElementById('timerField');
 const timerStartButton = document.getElementById('startTimer');
 const projectTitle = document.getElementById('projectTitle');
-const projectsList = document.getElementById('projectsList');
+const projectRate = document.getElementById('projectRate');
+const projectsList = document.getElementById('project-name');
+const tasksList = document.getElementById('startedTasks');
+const createClientForm = document.querySelector('.creating__client');
+const clientName = document.getElementById('clientName');
+const createClientButton = document.getElementById('createClient');
 const loginForm = document.querySelector('.form__login');
+const logoutButton = document.querySelector('.logout');
 let timer;
 let interval;
 const insertContent = async ()=>{
-    const worklogsData = await (0, _axiosDefault.default).get('http://localhost:3000/api/v1/users/me/worklogs');
-    projectsList.innerHTML = '';
-    if (!worklogsData.data.data) return;
-    worklogsData.data.data.forEach((worklog)=>{
-        const content = `<li>${worklog.title} | ${new Date(worklog.time).toISOString().slice(11, -5)} | ${worklog.client.name}</li>`;
-        projectsList.insertAdjacentHTML('afterbegin', content);
-    });
+    try {
+        const worklogs = await (0, _axiosDefault.default).get('http://localhost:3000/api/v1/users/me/worklogs');
+        const clients = await (0, _axiosDefault.default).get('http://localhost:3000/api/v1/users/me/clients');
+        // Check if work logs or clients exists
+        if (!worklogs.data.data || !clients.data.data) return;
+        tasksList.innerHTML = '';
+        worklogs.data.data.forEach((worklog)=>{
+            // const content = `<li>${worklog.title} | ${new Date(worklog.time).toISOString().slice(11, -5)} | </li>`;
+            const content = `<li>${worklog.title} | rate: $${worklog.rate} | ${new Date(worklog.time).toISOString().slice(11, -5)} | ${worklog.client.name}</li>`;
+            tasksList.insertAdjacentHTML('afterbegin', content);
+        });
+        clients.data.data.forEach((client)=>{
+            const content = `<option value='${client.id}'>${client.name}</option>`;
+            projectsList.insertAdjacentHTML('beforeend', content);
+        });
+        projectsList.addEventListener('change', (e)=>{
+            const selectValue = e.target.value;
+            if (selectValue === 'create') createClientForm.style = 'visible';
+        });
+    } catch (err) {
+        if (err.status === 401) window.location.href = 'http://localhost:3000/login';
+        console.log(err);
+    }
 };
 const calculateTotalHours = async ()=>{
     const timeData = await (0, _axiosDefault.default).get('http://localhost:3000/api/v1/worklogs/total');
@@ -712,9 +735,9 @@ const saveTimeToDB = async (time)=>{
     const body = {
         title: projectTitle.value,
         time,
-        rate: 25,
+        rate: projectRate.value,
         client: {
-            _id: '684da4c57f7b0a3e60f94c63'
+            _id: projectsList.value
         }
     };
     const sameNameProject = await (0, _axiosDefault.default).get(`http://localhost:3000/api/v1/worklogs?title=${body.title}&sort=createdAt`);
@@ -726,11 +749,16 @@ const saveTimeToDB = async (time)=>{
     calculateTotalHours();
     insertContent();
     projectTitle.value = '';
+    projectRate.value = '';
 };
-if (loginForm) loginForm.addEventListener('submit', ()=>{
+if (loginForm) loginForm.addEventListener('submit', (e)=>{
+    e.preventDefault();
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
-    (0, _loginTs.login)(email, password);
+    (0, _authFunctionsTs.login)(email, password);
+});
+if (logoutButton) logoutButton.addEventListener('click', async ()=>{
+    (0, _authFunctionsTs.logout)();
 });
 if (timerStartButton) timerStartButton.addEventListener('click', function() {
     if (this.dataset.status === 'stoped') {
@@ -752,11 +780,21 @@ if (timerStartButton) timerStartButton.addEventListener('click', function() {
         saveTimeToDB(timer.ms());
     }
 });
+if (createClientButton) createClientButton.addEventListener('click', async (e)=>{
+    e.preventDefault();
+    (0, _httpRequestsTs.createClient)(clientName.value);
+    const allClient = await (0, _axiosDefault.default).get('http://localhost:3000/api/v1/users/me/clients/');
+    const clientId = allClient.data.data.find((client)=>client.name === clientName.value);
+    const content = `<option value='${clientId}'>${clientName.value}</option>`;
+    projectsList.insertAdjacentHTML('beforeend', content);
+    clientName.value = '';
+    createClientForm.style.display = 'none';
+});
 if (window.location.pathname === '/') document.addEventListener('DOMContentLoaded', ()=>{
     gettingAllData();
 });
 
-},{"axios":"jo6P5","timer-node":"kKsZz","./utils/returnWithZero.ts":"3Zbkv","./utils/generatePDF.ts":"8U6nw","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./login.ts":"31IiT"}],"jo6P5":[function(require,module,exports,__globalThis) {
+},{"axios":"jo6P5","timer-node":"kKsZz","./utils/returnWithZero.ts":"3Zbkv","./utils/generatePDF.ts":"8U6nw","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./authFunctions.ts":"k67LR","./httpRequests.ts":"b2ift"}],"jo6P5":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "default", ()=>(0, _axiosJsDefault.default));
@@ -54582,15 +54620,16 @@ module.exports = function() {
     else return undefined;
 }();
 
-},{}],"31IiT":[function(require,module,exports,__globalThis) {
+},{}],"k67LR":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "login", ()=>login);
+parcelHelpers.export(exports, "logout", ()=>logout);
 var _axios = require("axios");
 var _axiosDefault = parcelHelpers.interopDefault(_axios);
 const login = async (email, password)=>{
     try {
-        const res = await (0, _axiosDefault.default)({
+        await (0, _axiosDefault.default)({
             method: 'POST',
             url: '/api/v1/users/login',
             data: {
@@ -54598,8 +54637,41 @@ const login = async (email, password)=>{
                 password
             }
         });
+        window.location.href = 'http://localhost:3000/';
     } catch  {
         console.log('Something with login went wrong');
+        location.reload();
+    }
+};
+const logout = async ()=>{
+    try {
+        await (0, _axiosDefault.default)({
+            method: 'POST',
+            url: '/api/v1/users/logout'
+        });
+        window.location.href = 'http://localhost:3000/login';
+    } catch  {
+        console.log('Something went wrong with logout');
+    }
+};
+
+},{"axios":"jo6P5","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"b2ift":[function(require,module,exports,__globalThis) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "createClient", ()=>createClient);
+var _axios = require("axios");
+var _axiosDefault = parcelHelpers.interopDefault(_axios);
+const createClient = async (clientName)=>{
+    try {
+        await (0, _axiosDefault.default)({
+            method: 'POST',
+            url: 'api/v1/clients/',
+            data: {
+                name: clientName
+            }
+        });
+    } catch (error) {
+        console.log(`Something went wrong when creating new client. Error: ${error}`);
     }
 };
 

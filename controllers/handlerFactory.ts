@@ -46,9 +46,9 @@ const getOne = <T>(Model: Model<T>) => {
   });
 };
 
-const createOne = <T>(Model: Model<T>, isWorklog = false) => {
+const createOne = <T>(Model: Model<T>, needUserId = false) => {
   return catchAsync(async (req: extendedRequest, res: Response, next: NextFunction) => {
-    if (isWorklog) req.body.owner = req.user!.id;
+    if (needUserId) req.body.owner = req.user!.id;
     const newDocument = await Model.create(req.body);
 
     if (!newDocument) {

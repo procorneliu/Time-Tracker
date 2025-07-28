@@ -74,6 +74,17 @@ const login = catchAsync(async (req: Request, res: Response, next: NextFunction)
   createSendToken(user, 200, req, res);
 });
 
+const logout = async (req: Request, res: Response) => {
+  res.cookie('jwt', 'loggedout', {
+    expires: new Date(Date.now()),
+    httpOnly: true,
+  });
+
+  res.status(200).json({
+    status: 'success',
+  });
+};
+
 const protect = catchAsync(async (req: extendedRequest, res: Response, next: NextFunction) => {
   // 1) Getting token and check if exists
   let token;
@@ -118,4 +129,4 @@ const restrictTo = (...roles: [string]) => {
   };
 };
 
-export default { signup, login, protect, restrictTo };
+export default { signup, login, logout, protect, restrictTo };
