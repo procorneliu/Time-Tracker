@@ -1,7 +1,9 @@
 import PDFDocument from 'pdfkit';
 import blobStream from 'blob-stream';
 
-const generatePDF = (data: string, toLink: HTMLLinkElement) => {
+const downloadLink = document.getElementById('downloadLink') as HTMLLinkElement;
+
+const generatePDF = (data: string) => {
   const doc = new PDFDocument();
   const stream = doc.pipe(blobStream());
 
@@ -10,7 +12,7 @@ const generatePDF = (data: string, toLink: HTMLLinkElement) => {
   doc.end();
 
   stream.on('finish', () => {
-    toLink.href = stream.toBlobURL('application/pdf');
+    downloadLink.href = stream.toBlobURL('application/pdf');
   });
 };
 
