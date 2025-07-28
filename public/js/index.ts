@@ -1,7 +1,7 @@
 // importing utils
 import generatePDF from './utils/generatePDF.ts';
 import calculateTotalHours from './utils/calculateTotalHours.ts';
-import { login, logout } from './utils/authRequests.ts';
+import { login, signup, logout } from './utils/authRequests.ts';
 import { saveTimeToDB } from './utils/saveTimeToDB.ts';
 import { startTimer, stopTimer } from './utils/timer.ts';
 import { gettingAllWorklogs } from './utils/worklogs.ts';
@@ -13,9 +13,11 @@ const projectTitle = document.getElementById('projectTitle') as HTMLInputElement
 const projectRate = document.getElementById('projectRate') as HTMLInputElement;
 const projectsList = document.getElementById('project-name') as HTMLSelectElement;
 const clientName = document.getElementById('clientName') as HTMLInputElement;
+const goToPageButton = document.getElementById('goToPage') as HTMLButtonElement;
 const createClientButton = document.getElementById('createClient') as HTMLButtonElement;
 const createClientForm = document.querySelector('.creating__client') as HTMLFormElement;
 const loginForm = document.querySelector('.form__login') as HTMLFormElement;
+const signupForm = document.querySelector('.form__signup') as HTMLFormElement;
 const logoutButton = document.querySelector('.logout') as HTMLButtonElement;
 
 // Clearing fields
@@ -56,10 +58,34 @@ if (loginForm) {
   });
 }
 
+if (signupForm) {
+  signupForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const name = (document.getElementById('name') as HTMLInputElement).value;
+    const email = (document.getElementById('email') as HTMLInputElement).value;
+    const password = (document.getElementById('password') as HTMLInputElement).value;
+    const passwordConfirm = (document.getElementById('passwordConfirm') as HTMLInputElement).value;
+
+    signup(name, email, password, passwordConfirm);
+  });
+}
+
 // Log out functionality
 if (logoutButton) {
   logoutButton.addEventListener('click', async () => {
     logout();
+  });
+}
+
+// If you are on signup page show login redirect and viceversa
+if (goToPageButton) {
+  goToPageButton.addEventListener('click', () => {
+    if (goToPageButton.dataset.set === 'login') {
+      window.location.href = 'http://localhost:3000/login';
+    } else if (goToPageButton.dataset.set === 'signup') {
+      window.location.href = 'http://localhost:3000/signup';
+    }
   });
 }
 
@@ -73,6 +99,7 @@ if (timerStartButton) {
       const timeMs = await stopTimer(this);
 
       // Save timer time to DATABASE
+      console.log(projectsList.value);
       await saveTimeToDB(projectTitle.value, timeMs, projectRate.value, projectsList.value);
 
       // refresh all content

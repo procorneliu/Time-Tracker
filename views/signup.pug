@@ -1,0 +1,16 @@
+extends base
+
+block content
+    h3 Sign up
+    form.form__signup(method="post")
+      label(for="name")
+      input#name(type="text", name="name", placeholder="John", required)
+      label(for="email")
+      input#email(type="email", name="email", placeholder="johnwesley@gmail.com" required)
+      label(for="password")
+      input#password(type="password", name="password", placeholder="********", required)
+      label(for="passwordConfirm")
+      input#passwordConfirm(type="password", name="passwordConfirm", placeholder="********", required)
+      button#signup(type="submit") Sign up
+    hr
+    button#goToPage(data-set="login") Log in

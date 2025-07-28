@@ -11,16 +11,21 @@ export const saveTimeToDB = async (
     title: projectTitle,
     time,
     rate: projectRate,
-    client: { _id: projectsList },
   };
 
+  // checking if project with same name exists
   const sameNameProject = await axios.get(
     `http://localhost:3000/api/v1/worklogs?title=${body.title}&sort=createdAt`,
   );
   const foundProject = sameNameProject.data.data[0];
 
+  // only if user selected a client for project
+  if (projectsList) {
+    body.client = { _id: projectsList };
+  }
+
   if (foundProject && new Date(foundProject.createdAt).getDate() === new Date().getDate()) {
-    await axios.patch(`http://localhost:3000/api/v1/worklogs/${foundProject._id}`, {
+    await axios.patch(`http://localhost:3000/api/v1/worklogs/${foundProject.id}`, {
       time: foundProject.time + body.time,
     });
   } else {

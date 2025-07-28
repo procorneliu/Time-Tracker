@@ -1,9 +1,9 @@
 // Typescript interface definition
 export interface WorklogObject {
-  title: string;
+  title?: string;
   time: number;
-  rate: string;
-  client: { [key: string]: any };
+  rate?: string;
+  client?: { [key: string]: any };
 }
 
 export interface ClientObject {

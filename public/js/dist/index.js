@@ -684,9 +684,11 @@ const projectTitle = document.getElementById('projectTitle');
 const projectRate = document.getElementById('projectRate');
 const projectsList = document.getElementById('project-name');
 const clientName = document.getElementById('clientName');
+const goToPageButton = document.getElementById('goToPage');
 const createClientButton = document.getElementById('createClient');
 const createClientForm = document.querySelector('.creating__client');
 const loginForm = document.querySelector('.form__login');
+const signupForm = document.querySelector('.form__signup');
 const logoutButton = document.querySelector('.logout');
 // Clearing fields
 const clearFields = ()=>{
@@ -715,9 +717,22 @@ if (loginForm) loginForm.addEventListener('submit', (e)=>{
     const password = document.getElementById('password').value;
     (0, _authRequestsTs.login)(email, password);
 });
+if (signupForm) signupForm.addEventListener('submit', (e)=>{
+    e.preventDefault();
+    const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const passwordConfirm = document.getElementById('passwordConfirm').value;
+    (0, _authRequestsTs.signup)(name, email, password, passwordConfirm);
+});
 // Log out functionality
 if (logoutButton) logoutButton.addEventListener('click', async ()=>{
     (0, _authRequestsTs.logout)();
+});
+// If you are on signup page show login redirect and viceversa
+if (goToPageButton) goToPageButton.addEventListener('click', ()=>{
+    if (goToPageButton.dataset.set === 'login') window.location.href = 'http://localhost:3000/login';
+    else if (goToPageButton.dataset.set === 'signup') window.location.href = 'http://localhost:3000/signup';
 });
 // Toggle timer button functionalities
 if (timerStartButton) timerStartButton.addEventListener('click', async function() {
@@ -726,6 +741,7 @@ if (timerStartButton) timerStartButton.addEventListener('click', async function(
     else if (this.dataset.status === 'started') {
         const timeMs = await (0, _timerTs.stopTimer)(this);
         // Save timer time to DATABASE
+        console.log(projectsList.value);
         await (0, _saveTimeToDBTs.saveTimeToDB)(projectTitle.value, timeMs, projectRate.value, projectsList.value);
         // refresh all content
         gettingAndInsertingAllContent();
@@ -54352,6 +54368,7 @@ exports.default = HttpStatusCode;
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "login", ()=>login);
+parcelHelpers.export(exports, "signup", ()=>signup);
 parcelHelpers.export(exports, "logout", ()=>logout);
 var _axios = require("axios");
 var _axiosDefault = parcelHelpers.interopDefault(_axios);
@@ -54371,6 +54388,23 @@ const login = async (email, password)=>{
         location.reload();
     }
 };
+const signup = async (name, email, password, passwordConfirm)=>{
+    try {
+        await (0, _axiosDefault.default)({
+            method: 'POST',
+            url: '/api/v1/users/signup',
+            data: {
+                name,
+                email,
+                password,
+                passwordConfirm
+            }
+        });
+        window.location.href = 'http://localhost:3000/';
+    } catch (err) {
+        console.log('Something went wrong with signup a new user. Error:', err.response.data.message);
+    }
+};
 const logout = async ()=>{
     try {
         await (0, _axiosDefault.default)({
@@ -54378,8 +54412,8 @@ const logout = async ()=>{
             url: '/api/v1/users/logout'
         });
         window.location.href = 'http://localhost:3000/login';
-    } catch  {
-        console.log('Something went wrong with logout');
+    } catch (err) {
+        console.log('Something went wrong with logout. Error:', err.response.data.message);
     }
 };
 
@@ -54393,14 +54427,16 @@ const saveTimeToDB = async (projectTitle, time, projectRate, projectsList)=>{
     const body = {
         title: projectTitle,
         time,
-        rate: projectRate,
-        client: {
-            _id: projectsList
-        }
+        rate: projectRate
     };
+    // checking if project with same name exists
     const sameNameProject = await (0, _axiosDefault.default).get(`http://localhost:3000/api/v1/worklogs?title=${body.title}&sort=createdAt`);
     const foundProject = sameNameProject.data.data[0];
-    if (foundProject && new Date(foundProject.createdAt).getDate() === new Date().getDate()) await (0, _axiosDefault.default).patch(`http://localhost:3000/api/v1/worklogs/${foundProject._id}`, {
+    // only if user selected a client for project
+    if (projectsList) body.client = {
+        _id: projectsList
+    };
+    if (foundProject && new Date(foundProject.createdAt).getDate() === new Date().getDate()) await (0, _axiosDefault.default).patch(`http://localhost:3000/api/v1/worklogs/${foundProject.id}`, {
         time: foundProject.time + body.time
     });
     else await (0, _axiosDefault.default).post('http://localhost:3000/api/v1/worklogs', body);
@@ -54690,7 +54726,7 @@ const gettingAllWorklogs = async ()=>{
     tasksList.innerHTML = '';
     // for each found worklog insert into task list
     worklogs.data.data.forEach((worklog)=>{
-        const content = `<li>${worklog.title} | rate: $${worklog.rate} | ${new Date(worklog.time).toISOString().slice(11, -5)} | ${worklog.client.name}</li>`;
+        const content = `<li>${worklog.title ? `${worklog.title} |` : ''} ${worklog.rate ? `rate: $${worklog.rate} |` : ''} ${new Date(worklog.time).toISOString().slice(11, -5)} ${worklog.client ? `| ${worklog.client.name}` : ''}</li>`;
         tasksList.insertAdjacentHTML('afterbegin', content);
     });
 };

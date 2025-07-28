@@ -16,7 +16,7 @@ const clientSchema: Schema = new Schema<IClientDocument>(
       trim: true,
     },
     owner: {
-      type: Schema.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'User',
       required: [true, 'a client must have a user'],
     },

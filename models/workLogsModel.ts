@@ -3,11 +3,11 @@ import type { IClientDocument } from './clientModel.ts';
 import type { IUserDocument } from './userModel.ts';
 
 interface IWorkLogs {
-  title: string;
+  title?: string;
   time: number;
   rate?: number;
   owner: IUserDocument;
-  client: IClientDocument;
+  client?: IClientDocument;
 }
 
 export interface IWorkLogsDocument extends IWorkLogs, Document {}
@@ -16,7 +16,8 @@ const workLogsSchema: Schema = new Schema<IWorkLogsDocument>(
   {
     title: {
       type: String,
-      required: [true, 'A project/work must have a title'],
+      // required: [true, 'A project/work must have a title'],
+      default: '',
     },
     time: {
       type: Number,
@@ -25,7 +26,7 @@ const workLogsSchema: Schema = new Schema<IWorkLogsDocument>(
     },
     rate: {
       type: Number,
-      min: 1,
+      min: 0,
     },
     owner: {
       type: Schema.ObjectId,
@@ -33,9 +34,9 @@ const workLogsSchema: Schema = new Schema<IWorkLogsDocument>(
       required: [true, 'a work/project must belong to a client'],
     },
     client: {
-      type: Schema.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'Client',
-      required: [true, 'a work/project must belong to a client'],
+      // required: [true, 'a work/project must belong to a client'],
     },
   },
   {

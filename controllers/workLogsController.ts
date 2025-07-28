@@ -14,7 +14,9 @@ const deleteWorkLogs = factory.deleteOne(WorkLogs);
 
 const getAllMyWorkLogs = catchAsync(
   async (req: extendedRequest, res: Response, next: NextFunction) => {
-    const myWorkLogs = await WorkLogs.find({ owner: req.user!.id }).populate('client');
+    const myWorkLogs = await WorkLogs.find({ owner: req.user!.id }).populate(
+      'client',
+    );
 
     if (!myWorkLogs) return next(new AppError('No WorkLogs found!', 404));
 
@@ -25,15 +27,21 @@ const getAllMyWorkLogs = catchAsync(
   },
 );
 
-const calculateTotalHours = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-  const allWorkLogs = await WorkLogs.find();
-  const totalHours: number = allWorkLogs.reduce((acc, value) => acc + value.time, 0);
+const calculateTotalHours = catchAsync(
+  async (req: extendedRequest, res: Response, next: NextFunction) => {
+    const allMyWorkLogs = await WorkLogs.find({ owner: req.user!.id });
 
-  res.status(200).json({
-    status: 'success',
-    data: totalHours,
-  });
-});
+    const totalHours: number = allMyWorkLogs.reduce(
+      (acc, value) => acc + value.time,
+      0,
+    );
+
+    res.status(200).json({
+      status: 'success',
+      data: totalHours,
+    });
+  },
+);
 
 export default {
   getAllWorkLogs,

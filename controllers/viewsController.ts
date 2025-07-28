@@ -1,6 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
 import catchAsync from '../utils/catchAsync.ts';
-import AppError from '../utils/appError.ts';
 
 const getOverview = catchAsync(async (req: Request, res: Response) => {
   res.status(200).render('worklogs');
@@ -14,4 +13,8 @@ const getLogin = catchAsync(async (req: Request, res: Response, next: NextFuncti
   }
 });
 
-export default { getOverview, getLogin };
+const getSignup = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  res.status(200).render('signup');
+});
+
+export default { getOverview, getLogin, getSignup };
