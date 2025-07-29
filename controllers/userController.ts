@@ -12,15 +12,24 @@ const createUser = factory.createOne(User);
 const updateUser = factory.updateOne(User);
 const deleteUser = factory.deleteOne(User);
 
-const getMe = catchAsync(async (req: extendedRequest, res: Response, next: NextFunction) => {
-  const currentUser = await User.findById(req.user!.id);
+const getMe = catchAsync(
+  async (req: extendedRequest, res: Response, next: NextFunction) => {
+    const currentUser = await User.findById(req.user!.id);
 
-  if (!currentUser) return next(new AppError('Please log in again!', 401));
+    if (!currentUser) return next(new AppError('Please log in again!', 401));
 
-  res.status(200).json({
-    status: 'success',
-    data: currentUser,
-  });
-});
+    res.status(200).json({
+      status: 'success',
+      data: currentUser,
+    });
+  },
+);
 
-export default { getAllUsers, getUser, createUser, updateUser, deleteUser, getMe };
+export default {
+  getAllUsers,
+  getUser,
+  createUser,
+  updateUser,
+  deleteUser,
+  getMe,
+};

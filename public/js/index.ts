@@ -5,17 +5,31 @@ import { login, signup, logout } from './utils/authRequests.ts';
 import { saveTimeToDB } from './utils/saveTimeToDB.ts';
 import { startTimer, stopTimer } from './utils/timer.ts';
 import { gettingAllWorklogs } from './utils/worklogs.ts';
-import { gettingAllClients, createClient, addNewClient } from './utils/clients.ts';
+import {
+  gettingAllClients,
+  createClient,
+  addNewClient,
+} from './utils/clients.ts';
 
 // Referencing HTML elements from DOM
-const timerStartButton = document.getElementById('startTimer') as HTMLButtonElement;
-const projectTitle = document.getElementById('projectTitle') as HTMLInputElement;
+const timerStartButton = document.getElementById(
+  'startTimer',
+) as HTMLButtonElement;
+const projectTitle = document.getElementById(
+  'projectTitle',
+) as HTMLInputElement;
 const projectRate = document.getElementById('projectRate') as HTMLInputElement;
-const projectsList = document.getElementById('project-name') as HTMLSelectElement;
+const projectsList = document.getElementById(
+  'project-name',
+) as HTMLSelectElement;
 const clientName = document.getElementById('clientName') as HTMLInputElement;
 const goToPageButton = document.getElementById('goToPage') as HTMLButtonElement;
-const createClientButton = document.getElementById('createClient') as HTMLButtonElement;
-const createClientForm = document.querySelector('.creating__client') as HTMLFormElement;
+const createClientButton = document.getElementById(
+  'createClient',
+) as HTMLButtonElement;
+const createClientForm = document.querySelector(
+  '.creating__client',
+) as HTMLFormElement;
 const loginForm = document.querySelector('.form__login') as HTMLFormElement;
 const signupForm = document.querySelector('.form__signup') as HTMLFormElement;
 const logoutButton = document.querySelector('.logout') as HTMLButtonElement;
@@ -52,7 +66,8 @@ if (loginForm) {
     e.preventDefault();
 
     const email = (document.getElementById('email') as HTMLInputElement).value;
-    const password = (document.getElementById('password') as HTMLInputElement).value;
+    const password = (document.getElementById('password') as HTMLInputElement)
+      .value;
 
     login(email, password);
   });
@@ -64,8 +79,11 @@ if (signupForm) {
 
     const name = (document.getElementById('name') as HTMLInputElement).value;
     const email = (document.getElementById('email') as HTMLInputElement).value;
-    const password = (document.getElementById('password') as HTMLInputElement).value;
-    const passwordConfirm = (document.getElementById('passwordConfirm') as HTMLInputElement).value;
+    const password = (document.getElementById('password') as HTMLInputElement)
+      .value;
+    const passwordConfirm = (
+      document.getElementById('passwordConfirm') as HTMLInputElement
+    ).value;
 
     signup(name, email, password, passwordConfirm);
   });
@@ -91,22 +109,30 @@ if (goToPageButton) {
 
 // Toggle timer button functionalities
 if (timerStartButton) {
-  timerStartButton.addEventListener('click', async function (this: HTMLButtonElement) {
-    // if timer is stopped
-    if (this.dataset.status === 'stopped') {
-      startTimer(this);
-    } else if (this.dataset.status === 'started') {
-      const timeMs = await stopTimer(this);
+  timerStartButton.addEventListener(
+    'click',
+    async function (this: HTMLButtonElement) {
+      // if timer is stopped
+      if (this.dataset.status === 'stopped') {
+        startTimer(this);
+      } else if (this.dataset.status === 'started') {
+        const timeMs = await stopTimer(this);
 
-      // Save timer time to DATABASE
-      console.log(projectsList.value);
-      await saveTimeToDB(projectTitle.value, timeMs, projectRate.value, projectsList.value);
+        // Save timer time to DATABASE
+        console.log(projectsList.value);
+        await saveTimeToDB(
+          projectTitle.value,
+          timeMs,
+          projectRate.value,
+          projectsList.value,
+        );
 
-      // refresh all content
-      gettingAndInsertingAllContent();
-      clearFields();
-    }
-  });
+        // refresh all content
+        gettingAndInsertingAllContent();
+        clearFields();
+      }
+    },
+  );
 }
 
 if (createClientButton) {

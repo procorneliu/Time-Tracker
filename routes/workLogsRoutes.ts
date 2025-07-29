@@ -7,7 +7,10 @@ const router = express.Router();
 router.use(authController.protect);
 
 // ROUTES for CRUD operation
-router.route('/').get(workLogsController.getAllWorkLogs).post(workLogsController.createWorkLogs);
+router
+  .route('/')
+  .get(workLogsController.getAllWorkLogs)
+  .post(workLogsController.createWorkLogs);
 
 router.route('/total').get(workLogsController.calculateTotalHours);
 

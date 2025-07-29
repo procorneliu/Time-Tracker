@@ -5,7 +5,11 @@ import cookieParser from 'cookie-parser';
 import AppError from './utils/appError.ts';
 import globalErrorHandler from './controllers/errorController.ts';
 
-import express, { type NextFunction, type Request, type Response } from 'express';
+import express, {
+  type NextFunction,
+  type Request,
+  type Response,
+} from 'express';
 
 import userRouter from './routes/userRoutes.ts';
 import clientRouter from './routes/clientRoutes.ts';

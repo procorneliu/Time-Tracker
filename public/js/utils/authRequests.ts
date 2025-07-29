@@ -36,7 +36,10 @@ export const signup = async (
     });
     window.location.href = 'http://localhost:3000/';
   } catch (err: any) {
-    console.log('Something went wrong with signup a new user. Error:', err.response.data.message);
+    console.log(
+      'Something went wrong with signup a new user. Error:',
+      err.response.data.message,
+    );
   }
 };
 
@@ -48,6 +51,9 @@ export const logout = async () => {
     });
     window.location.href = 'http://localhost:3000/login';
   } catch (err: any) {
-    console.log('Something went wrong with logout. Error:', err.response.data.message);
+    console.log(
+      'Something went wrong with logout. Error:',
+      err.response.data.message,
+    );
   }
 };

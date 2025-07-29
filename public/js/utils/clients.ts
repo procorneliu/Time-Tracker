@@ -4,7 +4,9 @@ import type { ClientObject } from './interfaces.ts';
 
 // Requesting and inserting Clients data
 export const gettingAllClients = async (projectsList: HTMLSelectElement) => {
-  const clients = await axios.get('http://localhost:3000/api/v1/users/me/clients');
+  const clients = await axios.get(
+    'http://localhost:3000/api/v1/users/me/clients',
+  );
 
   // Check if clients exists
   if (!clients) return;
@@ -31,10 +33,14 @@ export const createClient = async (
     });
 
     // find updated clients list
-    const allClient = await axios.get('http://localhost:3000/api/v1/users/me/clients/');
+    const allClient = await axios.get(
+      'http://localhost:3000/api/v1/users/me/clients/',
+    );
 
     // find new created client
-    const clientId = allClient.data.data.find((client: ClientObject) => client.name === clientName);
+    const clientId = allClient.data.data.find(
+      (client: ClientObject) => client.name === clientName,
+    );
 
     // update UI content
     const content = `<option value='${clientId}'>${clientName}</option>`;
@@ -44,7 +50,9 @@ export const createClient = async (
     clientName = '';
     createClientForm.style.display = 'none';
   } catch (error) {
-    console.log(`Something went wrong when creating new client. Error: ${error}`);
+    console.log(
+      `Something went wrong when creating new client. Error: ${error}`,
+    );
   }
 };
 

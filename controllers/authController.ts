@@ -24,12 +24,18 @@ const signToken = (id: Types.ObjectId): string | AppError => {
   return jwt.sign(payload, secret, options);
 };
 
-const createSendToken = (user: IUserDocument, statusCode: number, req: Request, res: Response) => {
+const createSendToken = (
+  user: IUserDocument,
+  statusCode: number,
+  req: Request,
+  res: Response,
+) => {
   const token = signToken(user.id);
 
   res.cookie('jwt', token, {
     expires: new Date(
-      Date.now() + Number(process.env.JWT_COOKIES_EXPIRES_IN) * 24 * 60 * 60 * 1000,
+      Date.now() +
+        Number(process.env.JWT_COOKIES_EXPIRES_IN) * 24 * 60 * 60 * 1000,
     ),
     httpOnly: true,
     sameSite: 'lax',
@@ -47,32 +53,36 @@ const createSendToken = (user: IUserDocument, statusCode: number, req: Request, 
   });
 };
 
-const signup = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-  const newUser = await User.create({
-    name: req.body.name,
-    email: req.body.email,
-    password: req.body.password,
-    passwordConfirm: req.body.passwordConfirm,
-  });
+const signup = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const newUser = await User.create({
+      name: req.body.name,
+      email: req.body.email,
+      password: req.body.password,
+      passwordConfirm: req.body.passwordConfirm,
+    });
 
-  createSendToken(newUser, 201, req, res);
-});
+    createSendToken(newUser, 201, req, res);
+  },
+);
 
-const login = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-  const { email, password } = req.body;
+const login = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { email, password } = req.body;
 
-  if (!email || !password) {
-    return next(new AppError('Please provide email and password', 400));
-  }
+    if (!email || !password) {
+      return next(new AppError('Please provide email and password', 400));
+    }
 
-  const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email }).select('+password');
 
-  if (!user || !(await user.correctPassword(password))) {
-    return next(new AppError('Incorrect email or password', 401));
-  }
+    if (!user || !(await user.correctPassword(password))) {
+      return next(new AppError('Incorrect email or password', 401));
+    }
 
-  createSendToken(user, 200, req, res);
-});
+    createSendToken(user, 200, req, res);
+  },
+);
 
 const logout = async (req: Request, res: Response) => {
   res.cookie('jwt', 'loggedout', {
@@ -85,44 +95,61 @@ const logout = async (req: Request, res: Response) => {
   });
 };
 
-const protect = catchAsync(async (req: extendedRequest, res: Response, next: NextFunction) => {
-  // 1) Getting token and check if exists
-  let token;
+const protect = catchAsync(
+  async (req: extendedRequest, res: Response, next: NextFunction) => {
+    // 1) Getting token and check if exists
+    let token;
 
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-    token = req.headers.authorization.split(' ')[1];
-  } else if (req.cookies.jwt) {
-    token = req.cookies.jwt;
-  }
+    if (
+      req.headers.authorization &&
+      req.headers.authorization.startsWith('Bearer')
+    ) {
+      token = req.headers.authorization.split(' ')[1];
+    } else if (req.cookies.jwt) {
+      token = req.cookies.jwt;
+    }
 
-  if (!token) return next(new AppError('Please log in to get access', 401));
-  // 2) Token verification
-  const verifyAsync = promisify(jwt.verify) as (
-    token: string,
-    secretOrPublicKey: jwt.Secret,
-  ) => Promise<string | JwtPayload>;
+    if (!token) return next(new AppError('Please log in to get access', 401));
+    // 2) Token verification
+    const verifyAsync = promisify(jwt.verify) as (
+      token: string,
+      secretOrPublicKey: jwt.Secret,
+    ) => Promise<string | JwtPayload>;
 
-  const decoded = (await verifyAsync(token, process.env.JWT_SECRET as string)) as JwtPayload;
+    const decoded = (await verifyAsync(
+      token,
+      process.env.JWT_SECRET as string,
+    )) as JwtPayload;
 
-  // 3) Check if user still exists
-  const currentUser = await User.findById(decoded.id);
-  if (!currentUser)
-    return next(new AppError('The user belonging to this user does no longer exists', 401));
+    // 3) Check if user still exists
+    const currentUser = await User.findById(decoded.id);
+    if (!currentUser)
+      return next(
+        new AppError(
+          'The user belonging to this user does no longer exists',
+          401,
+        ),
+      );
 
-  // 4) Check if user changed password after token was issued
-  if (currentUser.changedPasswordAfter(decoded.iat!)) {
-    return next(new AppError('Password was changed. Please log in again!', 401));
-  }
+    // 4) Check if user changed password after token was issued
+    if (currentUser.changedPasswordAfter(decoded.iat!)) {
+      return next(
+        new AppError('Password was changed. Please log in again!', 401),
+      );
+    }
 
-  // GRANT ACCESS
-  req.user = currentUser;
-  next();
-});
+    // GRANT ACCESS
+    req.user = currentUser;
+    next();
+  },
+);
 
 const restrictTo = (...roles: [string]) => {
   return (req: extendedRequest, res: Response, next: NextFunction) => {
     if (!roles.includes(req.user!.role)) {
-      return next(new AppError("You don't have permissions to perform this action", 403));
+      return next(
+        new AppError("You don't have permissions to perform this action", 403),
+      );
     }
 
     next();

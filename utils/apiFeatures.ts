@@ -9,7 +9,10 @@ class APIFeatures {
   query;
   queryString;
 
-  constructor(query: Query<IWorkLogsDocument[], IWorkLogsDocument>, queryString: QueryObject) {
+  constructor(
+    query: Query<IWorkLogsDocument[], IWorkLogsDocument>,
+    queryString: QueryObject,
+  ) {
     this.query = query;
     this.queryString = queryString;
   }
@@ -20,7 +23,10 @@ class APIFeatures {
     excludedFields.forEach((el) => delete queryObj[el]);
 
     let queryString = JSON.stringify(queryObj);
-    queryString = queryString.replace(/\b(gte | gt | lt | lt)\b/g, (match) => `$${match}`);
+    queryString = queryString.replace(
+      /\b(gte | gt | lt | lt)\b/g,
+      (match) => `$${match}`,
+    );
 
     this.query = this.query.find(JSON.parse(queryString));
 

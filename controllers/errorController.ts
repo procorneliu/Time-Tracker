@@ -24,7 +24,12 @@ const sendErrorProd = (err: AppError, req: Request, res: Response) => {
   });
 };
 
-export default (err: AppError, req: Request, res: Response, next: NextFunction) => {
+export default (
+  err: AppError,
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   err.statusCode ??= 500;
   err.status ??= 'error';
 

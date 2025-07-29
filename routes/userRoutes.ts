@@ -19,7 +19,10 @@ router.get('/me/clients', clientController.getAllMyClients);
 
 router.use(authController.restrictTo('admin'));
 
-router.route('/').get(userController.getAllUsers).post(userController.createUser);
+router
+  .route('/')
+  .get(userController.getAllUsers)
+  .post(userController.createUser);
 router
   .route('/:id')
   .get(userController.getUser)

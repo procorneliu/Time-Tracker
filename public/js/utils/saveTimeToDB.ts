@@ -24,10 +24,16 @@ export const saveTimeToDB = async (
     body.client = { _id: projectsList };
   }
 
-  if (foundProject && new Date(foundProject.createdAt).getDate() === new Date().getDate()) {
-    await axios.patch(`http://localhost:3000/api/v1/worklogs/${foundProject.id}`, {
-      time: foundProject.time + body.time,
-    });
+  if (
+    foundProject &&
+    new Date(foundProject.createdAt).getDate() === new Date().getDate()
+  ) {
+    await axios.patch(
+      `http://localhost:3000/api/v1/worklogs/${foundProject.id}`,
+      {
+        time: foundProject.time + body.time,
+      },
+    );
   } else {
     await axios.post('http://localhost:3000/api/v1/worklogs', body);
   }

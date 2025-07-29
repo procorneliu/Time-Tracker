@@ -47,24 +47,26 @@ const getOne = <T>(Model: Model<T>) => {
 };
 
 const createOne = <T>(Model: Model<T>, needUserId = false) => {
-  return catchAsync(async (req: extendedRequest, res: Response, next: NextFunction) => {
-    if (needUserId) req.body.owner = req.user!.id;
-    const newDocument = await Model.create(req.body);
+  return catchAsync(
+    async (req: extendedRequest, res: Response, next: NextFunction) => {
+      if (needUserId) req.body.owner = req.user!.id;
+      const newDocument = await Model.create(req.body);
 
-    if (!newDocument) {
-      return next(
-        new AppError(
-          'An error occured when creating new document. Please check details and try again!',
-          400,
-        ),
-      );
-    }
+      if (!newDocument) {
+        return next(
+          new AppError(
+            'An error occured when creating new document. Please check details and try again!',
+            400,
+          ),
+        );
+      }
 
-    res.status(201).json({
-      status: 'success',
-      data: newDocument,
-    });
-  });
+      res.status(201).json({
+        status: 'success',
+        data: newDocument,
+      });
+    },
+  );
 };
 
 const updateOne = <T>(Model: Model<T>) => {
@@ -72,7 +74,9 @@ const updateOne = <T>(Model: Model<T>) => {
     const { id } = req.params;
 
     if (!req.body) {
-      return next(new AppError('Please provide information you wanna change!', 400));
+      return next(
+        new AppError('Please provide information you wanna change!', 400),
+      );
     }
 
     const updatedDocument = await Model.findByIdAndUpdate(id, req.body, {
@@ -81,7 +85,9 @@ const updateOne = <T>(Model: Model<T>) => {
     });
 
     if (!updatedDocument) {
-      return next(new AppError('Updating document failed. Please try again!', 400));
+      return next(
+        new AppError('Updating document failed. Please try again!', 400),
+      );
     }
 
     res.status(200).json({
@@ -99,7 +105,10 @@ const deleteOne = <T>(Model: Model<T>) => {
 
     if (!deletedDocument) {
       return next(
-        new AppError('Something got wrong, we are unable to delete this document. Try again!', 400),
+        new AppError(
+          'Something got wrong, we are unable to delete this document. Try again!',
+          400,
+        ),
       );
     }
 

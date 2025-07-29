@@ -7,7 +7,10 @@ const router = express.Router();
 router.use(authController.protect);
 
 // ROUTES for CRUD operation
-router.route('/').get(clientController.getAllClients).post(clientController.createClient);
+router
+  .route('/')
+  .get(clientController.getAllClients)
+  .post(clientController.createClient);
 router
   .route('/:id')
   .get(clientController.getClient)
