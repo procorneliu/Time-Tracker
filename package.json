@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "dev:server": "nodemon server.ts",
-    "dev:client": "parcel watch public/js/index.ts --dist-dir public/js/dist",
+    "dev:client": "parcel watch public/js/index.ts --dist-dir public/js/dist --port 1234",
     "start": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "clean": "rm -rf .cache .parcel-cache",
     "lint": "eslint ."
@@ -55,6 +55,7 @@
     "events": "^3.3.0",
     "globals": "^16.3.0",
     "jiti": "^2.5.1",
+    "nodemon": "^3.1.10",
     "parcel": "^2.15.4",
     "path-browserify": "^1.0.1",
     "prettier": "^3.5.3",
