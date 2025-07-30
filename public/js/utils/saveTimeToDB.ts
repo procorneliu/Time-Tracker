@@ -1,5 +1,6 @@
 import axios from 'axios';
 import type { WorklogObject } from './interfaces.ts';
+import returnUrl from '../../../utils/returnUrl.ts';
 
 export const saveTimeToDB = async (
   projectTitle: string,
@@ -15,7 +16,7 @@ export const saveTimeToDB = async (
 
   // checking if project with same name exists
   const sameNameProject = await axios.get(
-    `http://localhost:3000/api/v1/worklogs?title=${body.title}&sort=createdAt`,
+    `http://${returnUrl()}/api/v1/worklogs?title=${body.title}&sort=createdAt`,
   );
   const foundProject = sameNameProject.data.data[0];
 
@@ -29,12 +30,12 @@ export const saveTimeToDB = async (
     new Date(foundProject.createdAt).getDate() === new Date().getDate()
   ) {
     await axios.patch(
-      `http://localhost:3000/api/v1/worklogs/${foundProject.id}`,
+      `http://${returnUrl()}/api/v1/worklogs/${foundProject.id}`,
       {
         time: foundProject.time + body.time,
       },
     );
   } else {
-    await axios.post('http://localhost:3000/api/v1/worklogs', body);
+    await axios.post(`http://${returnUrl()}/api/v1/worklogs`, body);
   }
 };

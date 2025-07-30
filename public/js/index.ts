@@ -55,7 +55,7 @@ const gettingAndInsertingAllContent = async () => {
   } catch (err: any) {
     // if unauthorized go to login page
     if (err.status === 401) {
-      window.location.href = 'http://localhost:3000/login';
+      window.location.href = `http://${window.location.host}/login`;
     }
   }
 };
@@ -100,9 +100,9 @@ if (logoutButton) {
 if (goToPageButton) {
   goToPageButton.addEventListener('click', () => {
     if (goToPageButton.dataset.set === 'login') {
-      window.location.href = 'http://localhost:3000/login';
+      window.location.href = `http://${window.location.host}/login`;
     } else if (goToPageButton.dataset.set === 'signup') {
-      window.location.href = 'http://localhost:3000/signup';
+      window.location.href = `http://${window.location.host}/signup`;
     }
   });
 }

@@ -5,7 +5,7 @@ import type { ClientObject } from './interfaces.ts';
 // Requesting and inserting Clients data
 export const gettingAllClients = async (projectsList: HTMLSelectElement) => {
   const clients = await axios.get(
-    'http://localhost:3000/api/v1/users/me/clients',
+    `http://${window.location.host}/api/v1/users/me/clients`,
   );
 
   // Check if clients exists
@@ -34,7 +34,7 @@ export const createClient = async (
 
     // find updated clients list
     const allClient = await axios.get(
-      'http://localhost:3000/api/v1/users/me/clients/',
+      `http://${window.location.host}/api/v1/users/me/clients/`,
     );
 
     // find new created client

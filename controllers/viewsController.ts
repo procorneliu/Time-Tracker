@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
 import catchAsync from '../utils/catchAsync.ts';
+import returnUrl from '../utils/returnUrl.ts';
 
 const getOverview = catchAsync(async (req: Request, res: Response) => {
   res.status(200).render('worklogs');
@@ -8,7 +9,7 @@ const getOverview = catchAsync(async (req: Request, res: Response) => {
 const getLogin = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     if (req.cookies.jwt) {
-      res.redirect('http://localhost:3000/');
+      res.redirect(`http://${returnUrl()}/`);
     } else {
       res.status(200).render('login');
     }

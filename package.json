@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "dev:server": "nodemon server.ts",
-    "dev:client": "parcel watch public/js/index.ts --dist-dir public/js/dist --port 1234",
+    "dev:client": "parcel build public/js/index.ts --dist-dir public/js/dist",
     "start": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "clean": "rm -rf .cache .parcel-cache",
     "lint": "eslint ."

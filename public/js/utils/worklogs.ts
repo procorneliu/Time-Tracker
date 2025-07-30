@@ -1,13 +1,14 @@
 import axios from 'axios';
 
 import type { WorklogObject } from './interfaces.ts';
+import returnUrl from '../../../utils/returnUrl.ts';
 
 const tasksList = document.getElementById('startedTasks') as HTMLUListElement;
 
 // Requesting and inserting Worklogs data
 export const gettingAllWorklogs = async () => {
   const worklogs = await axios.get(
-    'http://localhost:3000/api/v1/users/me/worklogs',
+    `http://${returnUrl()}/api/v1/users/me/worklogs`,
   );
 
   // Check if work logs exists
