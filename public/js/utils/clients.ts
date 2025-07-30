@@ -43,8 +43,11 @@ export const createClient = async (
     );
 
     // update UI content
-    const content = `<option value='${clientId}'>${clientName}</option>`;
+    const content = `<option value='${clientId.id}'>${clientName}</option>`;
     projectsList.insertAdjacentHTML('beforeend', content);
+
+    // select new created client
+    projectsList.options.selectedIndex = projectsList.options.length - 1;
 
     // clean and hide create client form
     clientName = '';

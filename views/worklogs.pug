@@ -1,7 +1,9 @@
 extends base
 
 block content
-    h1 Total what:
+    h4 USER: #{username}
+
+    h2 Total time:
     p#totalTime 00:00:00
     a#downloadLink(downloadLink="pdf-summary")
       button#downloadButton Download Invoice 

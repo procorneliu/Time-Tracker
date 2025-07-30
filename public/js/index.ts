@@ -45,7 +45,6 @@ const gettingAndInsertingAllContent = async () => {
   try {
     // reqeusting worklost and clients data from DB
     gettingAllWorklogs();
-    gettingAllClients(projectsList);
 
     // show creating new client form when selecting option "Add new..."
     addNewClient(projectsList, createClientForm);
@@ -119,7 +118,6 @@ if (timerStartButton) {
         const timeMs = await stopTimer(this);
 
         // Save timer time to DATABASE
-        console.log(projectsList.value);
         await saveTimeToDB(
           projectTitle.value,
           timeMs,
@@ -147,6 +145,9 @@ if (createClientButton) {
 // Loading all content after DOM was loaded
 if (window.location.pathname === '/') {
   document.addEventListener('DOMContentLoaded', () => {
+    // this command will run when DOM is loaded and after each new worklog
     gettingAndInsertingAllContent();
+    // running getting all clients here for one run
+    gettingAllClients(projectsList);
   });
 }
